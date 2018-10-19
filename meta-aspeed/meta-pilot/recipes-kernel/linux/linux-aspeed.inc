@@ -6,6 +6,8 @@ PROVIDES += "virtual/kernel"
 
 KCONFIG_MODE="--alldefconfig"
 
+#FILESEXTRAPATHS_prepend_pilot4 := "${THISDIR}/pilot4:"
+
 KSRC ?= "git://github.com/AspeedTech-BMC/linux;protocol=git;branch=${KBRANCH}"
 SRC_URI = "${KSRC}"
 SRC_URI += " file://defconfig"

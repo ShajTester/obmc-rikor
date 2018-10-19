@@ -1,6 +1,6 @@
 require u-boot-common-aspeed_${PV}.inc
 
-SRC_URI += "file://default-gcc.patch"
+#SRC_URI += "file://default-gcc.patch"
 SRC_URI += "file://fw_env.config"
 SRC_URI += "file://alt_fw_env.config"
 
