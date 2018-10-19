@@ -1,4 +1,4 @@
-CONFIG_CROSS_COMPILE="arm-aspeed-linux-gnueabi-"
+#CONFIG_CROSS_COMPILE="arm-aspeed-linux-gnueabi-"
 CONFIG_BLK_DEV_INITRD=y
 # CONFIG_COMPAT_BRK is not set
 CONFIG_MODULES=y

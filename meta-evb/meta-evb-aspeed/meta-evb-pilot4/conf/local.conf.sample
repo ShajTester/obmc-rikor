@@ -1,4 +1,5 @@
 MACHINE ??= "evb-pilot4"
+KERNEL_FEATURES_remove = "phosphor-gpio-keys"
 DISTRO ?= "openbmc-phosphor"
 PACKAGE_CLASSES ?= "package_rpm"
 SANITY_TESTED_DISTROS_append ?= " *"
