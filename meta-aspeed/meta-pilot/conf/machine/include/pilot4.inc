@@ -14,7 +14,7 @@ UBOOT_RD_ENTRYPOINT ?= "0x81A00000"
 
 DEFAULTTUNE ?= "arm7a-novfp"
 
-SERIAL_CONSOLES = "115200;ttyS4"
+SERIAL_CONSOLES = "115200;ttyS0"
 
 SOC_FAMILY = "pilot4_asic"
 #include conf/machine/include/soc-family.inc
