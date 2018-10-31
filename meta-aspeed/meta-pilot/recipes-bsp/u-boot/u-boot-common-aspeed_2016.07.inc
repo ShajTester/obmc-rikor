@@ -7,7 +7,7 @@ PE = "1"
 
 # We use the revision in order to avoid having to fetch it from the
 # repo during parse
-SRCREV = "c1c23bfc9eede5f1b400ebe1b9d488000dd983a8"
+SRCREV = "f7be9c8df51cdd7208b3ade56076a71b7f0d250e"
 #SRCREV = " ${AUTOREV}"
 
 UBRANCH = "pilot4_initial"
