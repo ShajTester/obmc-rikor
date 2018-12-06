@@ -7,12 +7,12 @@ PE = "1"
 
 # We use the revision in order to avoid having to fetch it from the
 # repo during parse
-SRCREV = "f7be9c8df51cdd7208b3ade56076a71b7f0d250e"
+SRCREV = "d31af21ac8eead2ec4ba22683778b22866154609"
 #SRCREV = " ${AUTOREV}"
 
-UBRANCH = "pilot4_initial"
+UBRANCH = "pilot4"
 SRC_URI = "git://git@github.com/AspeedTech-BMC/u-boot.git;branch=${UBRANCH};protocol=https"
-
+#SRC_URI = "git:///home/shivahs/pilot4/lenovo/ourgit/u-boot;branch=${UBRANCH};protocol=file"
 S = "${WORKDIR}/git"
 
 #PV = "v2016.07+git${SRCPV}"

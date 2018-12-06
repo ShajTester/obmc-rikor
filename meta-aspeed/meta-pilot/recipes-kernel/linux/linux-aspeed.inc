@@ -9,6 +9,7 @@ KCONFIG_MODE="--alldefconfig"
 #FILESEXTRAPATHS_prepend_pilot4 := "${THISDIR}/pilot4:"
 
 KSRC ?= "git://github.com/AspeedTech-BMC/linux;protocol=git;branch=${KBRANCH}"
+#KSRC ?= "git:///home/shivahs/pilot4/lenovo/ourgit/linux;protocol=file;nocheckout=1;branch=${KBRANCH}"
 SRC_URI = "${KSRC}"
 SRC_URI += " file://defconfig"
 
@@ -26,5 +27,4 @@ inherit kernel
 require recipes-kernel/linux/linux-yocto.inc
 
 # From 4.16+ the COPYING file changed
-#LIC_FILES_CHKSUM = file://COPYING;md5=bbea815ee2795b2f4230826c0c6b8814
-
+LIC_FILES_CHKSUM = "file://COPYING;md5=bbea815ee2795b2f4230826c0c6b8814"
