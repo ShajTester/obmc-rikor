@@ -1,7 +1,7 @@
 KBRANCH ?= "pilot-linux-4.17-rev1"
 LINUX_VERSION ?= "4.17.18"
 
-SRCREV="38483928f7aa4e82867f3bc9e4aee789c86a7cd6"
+SRCREV="a20df9c6b2317e2e63051f713156be54262af5fa"
 #SRCREV="${AUTOREV}"
 
 require linux-aspeed.inc
