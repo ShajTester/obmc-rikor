@@ -7,7 +7,7 @@ PE = "1"
 
 # We use the revision in order to avoid having to fetch it from the
 # repo during parse
-SRCREV = "6e2f3cf85a5d18130aa134c2f09c2d181c6230f9"
+SRCREV = "96b7ef3cd41642a4b5dfdeb77cb31b49d78f7618"
 #SRCREV = "a2b9d593bbbdaded165d8c596840fb742a1d3c42"
 #SRCREV = " ${AUTOREV}"
 
