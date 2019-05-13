@@ -9,7 +9,7 @@ KCONFIG_MODE="--alldefconfig"
 #FILESEXTRAPATHS_prepend_pilot4 := "${THISDIR}/pilot4:"
 
 KSRC ?= "git://github.com/AspeedTech-BMC/linux;protocol=git;branch=${KBRANCH}"
-#KSRC ?= "git:///home/vnigade/pilot4/linux_4.19/linux;protocol=file;nocheckout=1;branch=${KBRANCH}"
+#KSRC ?= "git:///home/shivahs/pilot4/lenovo/ourgit/linux_4.19/linux;protocol=file;nocheckout=1;branch=${KBRANCH}"
 SRC_URI = "${KSRC}"
 SRC_URI += " file://defconfig"
 
