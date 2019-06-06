@@ -1,4 +1,4 @@
-HOMEPAGE = "https://github.com/openbmc/u-boot"
+HOMEPAGE = "https://github.com//AspeedTech-BMC/u-boot-2017.01"
 SECTION = "bootloaders"
 DEPENDS += "flex-native bison-native"
 
@@ -8,11 +8,12 @@ PE = "1"
 
 # We use the revision in order to avoid having to fetch it from the
 # repo during parse
-SRCREV = "cc6c5bef00ebbac0b37f9a406913ca17ff9c56b5"
+SRCREV = "f77e606785978c9be7f3553e0e6564c5a586cdf0"
 
-UBRANCH = "v2016.07-aspeed-openbmc"
-SRC_URI = "git://git@github.com/openbmc/u-boot.git;branch=${UBRANCH};protocol=https"
+UBRANCH = "aspeed-dev-v2017.01"
+SRC_URI = "git://git@github.com/AspeedTech-BMC/u-boot.git;branch=${UBRANCH};protocol=https"
+#SRC_URI = "git:///home/shivahs/AST2600/uboot_201701/new/u-boot;branch=${UBRANCH};protocol=file"
 
 S = "${WORKDIR}/git"
 
-PV = "v2016.07+git${SRCPV}"
+PV = "v2017.01+git${SRCPV}"
