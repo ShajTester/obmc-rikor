@@ -9,6 +9,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
 inherit meson pkgconfig
 
 DEPENDS += " \
+        function2 \
         stdplus \
         systemd \
         "
@@ -19,6 +20,6 @@ EXTRA_OEMESON = " \
         "
 
 SRC_URI += "git://github.com/openbmc/sdeventplus"
-SRCREV = "8ec59e6242c3c4752033ea69270e4edb2cd4caec"
+SRCREV = "e19c3cf6493d068d600db959de44a00a8097bbf5"
 
 S = "${WORKDIR}/git"
