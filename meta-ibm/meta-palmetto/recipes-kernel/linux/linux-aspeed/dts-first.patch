@@ -1,0 +1,371 @@
+diff --git a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
+index 2f2cb0e..99ec466 100644
+--- a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
++++ b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
+@@ -14,7 +14,7 @@
+ 	};
+ 
+ 	memory@40000000 {
+-		reg = <0x40000000 0x20000000>;
++		reg = <0x40000000 0x10000000>;
+ 	};
+ 
+ 	reserved-memory {
+@@ -22,38 +22,61 @@
+ 		#size-cells = <1>;
+ 		ranges;
+ 
+-		vga_memory: framebuffer@5f000000 {
++		vga_memory: framebuffer@4f000000 {
+ 			no-map;
+-			reg = <0x5f000000 0x01000000>; /* 16M */
++			reg = <0x4f000000 0x01000000>; /* 16M */
+ 		};
+ 
+-		coldfire_memory: codefire_memory@5ee00000 {
+-			reg = <0x5ee00000 0x00200000>;
++		coldfire_memory: codefire_memory@4ee00000 {
++			reg = <0x4ee00000 0x00200000>;
+ 			no-map;
+ 		};
+ 
+-		flash_memory: region@5c000000 {
++		flash_memory: region@4c000000 {
+ 			no-map;
+-			reg = <0x5C000000 0x02000000>; /* 32MB */
++			reg = <0x4C000000 0x02000000>; /* 32MB */
+ 		};
++
++		gfx_memory: framebuffer@4b000000 {
++			reg = <0x4b000000 0x01000000>;
++		};
++
++		video_engine_memory: jpegbuffer@49000000 {
++			reg = <0x49000000 0x02000000>; 
++		};
++
++
++		// gfx_memory: framebuffer {
++		// 	size = <0x01000000>;
++		// 	alignment = <0x01000000>;
++		// 	compatible = "shared-dma-pool";
++		// 	reusable;
++		// };
++
++		// video_engine_memory: jpegbuffer {
++		// 	size = <0x02000000>;	/* 32M */
++		// 	alignment = <0x01000000>;
++		// 	compatible = "shared-dma-pool";
++		// 	reusable;
++		// };
+ 	};
+ 
+ 	leds {
+ 		compatible = "gpio-leds";
+ 
+ 		heartbeat {
+-			gpios = <&gpio ASPEED_GPIO(R, 4) GPIO_ACTIVE_LOW>;
++			gpios = <&gpio ASPEED_GPIO(Q, 7) GPIO_ACTIVE_LOW>;
+ 		};
+ 
+ 		power {
+-			gpios = <&gpio ASPEED_GPIO(R, 5) GPIO_ACTIVE_LOW>;
++			gpios = <&gpio ASPEED_GPIO(Q, 4) GPIO_ACTIVE_LOW>;
+ 		};
+ 
+ 		identify {
+-			gpios = <&gpio ASPEED_GPIO(A, 2) GPIO_ACTIVE_LOW>;
++			gpios = <&gpio ASPEED_GPIO(D, 6) GPIO_ACTIVE_LOW>;
+ 		};
+ 	};
+-
++/*
+ 	fsi: gpio-fsi {
+ 		compatible = "aspeed,ast2400-cf-fsi-master", "fsi-master";
+ 		#address-cells = <2>;
+@@ -69,14 +92,14 @@
+ 		enable-gpios = <&gpio ASPEED_GPIO(D, 0) GPIO_ACTIVE_HIGH>;
+ 		trans-gpios = <&gpio ASPEED_GPIO(H, 6) GPIO_ACTIVE_HIGH>;
+ 	};
+-
++*/
+ 	gpio-keys {
+ 		compatible = "gpio-keys";
+ 
+ 		checkstop {
+ 			label = "checkstop";
+-			gpios = <&gpio ASPEED_GPIO(P, 5) GPIO_ACTIVE_LOW>;
+-			linux,code = <ASPEED_GPIO(P, 5)>;
++			gpios = <&gpio ASPEED_GPIO(D, 5) GPIO_ACTIVE_LOW>;
++			linux,code = <ASPEED_GPIO(D, 5)>;
+ 		};
+ 	};
+ };
+@@ -141,19 +164,68 @@
+ 	pinctrl-0 = <&pinctrl_rmii1_default>;
+ };
+ 
+-&i2c0 {
++
++
++&gfx {
++     status = "okay";
++     memory-region = <&gfx_memory>;
++};
++
++&video {
++	status = "okay";
++	memory-region = <&video_engine_memory>;
++};
++
++
++&adc {
+ 	status = "okay";
++};
+ 
+-	eeprom@50 {
+-		compatible = "atmel,24c256";
+-		reg = <0x50>;
+-		pagesize = <64>;
++&pwm_tacho {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_pwm0_default &pinctrl_pwm1_default>;
++
++	fan@0 {
++		reg = <0x00>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x08>;
+ 	};
+ 
+-	rtc@68 {
+-		compatible = "dallas,ds3231";
+-		reg = <0x68>;
++	fan@1 {
++		reg = <0x00>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x09>;
++	};
++
++	fan@2 {
++		reg = <0x01>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x0a>;
++	};
++
++	fan@3 {
++		reg = <0x01>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x0b>;
+ 	};
++
++	fan@4 {
++		reg = <0x00>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x0c>;
++	};
++
++	fan@5 {
++		reg = <0x00>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x0d>;
++	};
++
++	fan@6 {
++		reg = <0x01>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x0e>;
++	};
++};
++
++
++
++&i2c0 {
++	status = "okay";
+ };
+ 
+ &i2c1 {
+@@ -163,19 +235,22 @@
+ &i2c2 {
+ 	status = "okay";
+ 
+-	tmp423@4c {
+-		compatible = "ti,tmp423";
+-		reg = <0x4c>;
+-	};
+ };
+ 
+ &i2c3 {
+ 	status = "okay";
++	eeprom@56 {
++		compatible = "atmel,24c02";
++		reg = <0x56>;
++		pagesize = <64>;
++	};
+ 
+-	occ-hwmon@50 {
+-		compatible = "ibm,p8-occ-hwmon";
+-		reg = <0x50>;
++/*
++	rtc@68 {
++		compatible = "dallas,ds3231";
++		reg = <0x68>;
+ 	};
++*/
+ };
+ 
+ &i2c4 {
+@@ -183,15 +258,36 @@
+ };
+ 
+ &i2c5 {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &i2c6 {
+ 	status = "okay";
++
++	tmp75@49 {
++		compatible = "ti,lm75";
++		reg = <0x49>;
++	};
++	tmp75@4e {
++		compatible = "ti,lm75";
++		reg = <0x4e>;
++	};
++	tmp75@4c {
++		compatible = "ti,lm75";
++		reg = <0x4c>;
++	};
++	tmp75@4b {
++		compatible = "ti,lm75";
++		reg = <0x4b>;
++	};
++	tmp421@4f {
++		compatible = "ti,tmp421";
++		reg = <0x4f>;
++	};
+ };
+ 
+ &i2c7 {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &vuart {
+@@ -213,6 +309,43 @@
+ };
+ 
+ &gpio {
++
++	pin_gpio_r7 {
++		gpio-hog;
++		gpios = <ASPEED_GPIO(R, 7) GPIO_ACTIVE_HIGH>;
++		input;
++		line-name = "GTEST1";
++	};
++
++	pin_gpio_r6 {
++		gpio-hog;
++		gpios = <ASPEED_GPIO(R, 6) GPIO_ACTIVE_HIGH>;
++		input;
++		line-name = "GTEST2";
++	};
++
++	pin_gpio_y3 {
++		gpio-hog;
++		gpios = <ASPEED_GPIO(Y, 3) GPIO_ACTIVE_HIGH>;
++		input;
++		line-name = "GTEST3";
++	};
++
++	pin_gpio_r5 {
++		gpio-hog;
++		gpios = <ASPEED_GPIO(R, 5) GPIO_ACTIVE_HIGH>;
++		input;
++		line-name = "GTEST4";
++	};
++
++	pin_gpio_r4 {
++		gpio-hog;
++		gpios = <ASPEED_GPIO(R, 4) GPIO_ACTIVE_HIGH>;
++		input;
++		line-name = "GTEST5";
++	};
++
++/*
+ 	pin_func_mode0 {
+ 		gpio-hog;
+ 		gpios = <ASPEED_GPIO(C, 4) GPIO_ACTIVE_HIGH>;
+@@ -352,8 +485,9 @@
+ 		output-high;
+ 		line-name = "BMC_TPM_INT_N";
+ 	};
++*/
+ };
+-
++/*
+ &fsi {
+ 	cfam@0,0 {
+ 		reg = <0 0>;
+@@ -375,3 +509,4 @@
+ 		};
+ 	};
+ };
++*/
+diff --git a/arch/arm/boot/dts/aspeed-g4.dtsi b/arch/arm/boot/dts/aspeed-g4.dtsi
+index 6011692..6544c37 100644
+--- a/arch/arm/boot/dts/aspeed-g4.dtsi
++++ b/arch/arm/boot/dts/aspeed-g4.dtsi
+@@ -181,6 +181,16 @@
+ 				quality = <100>;
+ 			};
+ 
++			gfx: display@1e6e6000 {
++				compatible = "aspeed,ast2400-gfx", "syscon";
++				reg = <0x1e6e6000 0x1000>;
++				reg-io-width = <4>;
++				clocks = <&syscon ASPEED_CLK_GATE_D1CLK>;
++				resets = <&syscon ASPEED_RESET_CRT1>;
++				status = "disabled";
++				interrupts = <0x19>;
++			};
++
+ 			adc: adc@1e6e9000 {
+ 				compatible = "aspeed,ast2400-adc";
+ 				reg = <0x1e6e9000 0xb0>;
+@@ -190,6 +200,16 @@
+ 				status = "disabled";
+ 			};
+ 
++			video: video@1e700000 {
++				compatible = "aspeed,ast2400-video-engine";
++				reg = <0x1e700000 0x1000>;
++				clocks = <&syscon ASPEED_CLK_GATE_VCLK>,
++					 <&syscon ASPEED_CLK_GATE_ECLK>;
++				clock-names = "vclk", "eclk";
++				interrupts = <7>;
++				status = "disabled";
++			};
++
+ 			sram: sram@1e720000 {
+ 				compatible = "mmio-sram";
+ 				reg = <0x1e720000 0x8000>;	// 32K
+diff --git a/drivers/media/platform/aspeed-video.c b/drivers/media/platform/aspeed-video.c
+index 1bb863b..b783f18 100644
+--- a/drivers/media/platform/aspeed-video.c
++++ b/drivers/media/platform/aspeed-video.c
+@@ -748,6 +748,10 @@ static void aspeed_video_get_resolution(struct aspeed_video *video)
+ 					    VE_MAX_SRC_BUFFER_SIZE)) {
+ 			dev_err(video->dev,
+ 				"Failed to allocate source buffers\n");
++			dev_err(video->dev, "srcs[0].size %d; srcs[0].dma %d, srcs[0].virt 0x%p\n", 
++				video->srcs[0].size,
++				video->srcs[0].dma,
++				video->srcs[0].virt);
+ 			return;
+ 		}
+ 	}
+@@ -897,7 +901,7 @@ static void aspeed_video_set_resolution(struct aspeed_video *video)
+ 	return;
+ 
+ err_mem:
+-	dev_err(video->dev, "Failed to allocate source buffers\n");
++	dev_err(video->dev, "Failed to allocate source buffers (set_resolution)\n");
+ 
+ 	if (video->srcs[0].size)
+ 		aspeed_video_free_buf(video, &video->srcs[0]);
