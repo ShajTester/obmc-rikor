@@ -1,5 +1,5 @@
 diff --git a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
-index 2f2cb0e..99ec466 100644
+index 2f2cb0e..21ede9c 100644
 --- a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 +++ b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 @@ -14,7 +14,7 @@
@@ -11,7 +11,7 @@ index 2f2cb0e..99ec466 100644
  	};
  
  	reserved-memory {
-@@ -22,38 +22,61 @@
+@@ -22,62 +22,46 @@
  		#size-cells = <1>;
  		ranges;
  
@@ -44,64 +44,57 @@ index 2f2cb0e..99ec466 100644
 +			reg = <0x49000000 0x02000000>; 
 +		};
 +
-+
-+		// gfx_memory: framebuffer {
-+		// 	size = <0x01000000>;
-+		// 	alignment = <0x01000000>;
-+		// 	compatible = "shared-dma-pool";
-+		// 	reusable;
-+		// };
-+
-+		// video_engine_memory: jpegbuffer {
-+		// 	size = <0x02000000>;	/* 32M */
-+		// 	alignment = <0x01000000>;
-+		// 	compatible = "shared-dma-pool";
-+		// 	reusable;
-+		// };
  	};
  
  	leds {
  		compatible = "gpio-leds";
- 
+-
++/*
  		heartbeat {
 -			gpios = <&gpio ASPEED_GPIO(R, 4) GPIO_ACTIVE_LOW>;
-+			gpios = <&gpio ASPEED_GPIO(Q, 7) GPIO_ACTIVE_LOW>;
++			gpios = <&gpio ASPEED_GPIO(D, 5) GPIO_ACTIVE_LOW>;
  		};
  
  		power {
 -			gpios = <&gpio ASPEED_GPIO(R, 5) GPIO_ACTIVE_LOW>;
-+			gpios = <&gpio ASPEED_GPIO(Q, 4) GPIO_ACTIVE_LOW>;
++			gpios = <&gpio ASPEED_GPIO(D, 4) GPIO_ACTIVE_LOW>;
  		};
  
  		identify {
 -			gpios = <&gpio ASPEED_GPIO(A, 2) GPIO_ACTIVE_LOW>;
-+			gpios = <&gpio ASPEED_GPIO(D, 6) GPIO_ACTIVE_LOW>;
- 		};
- 	};
+-		};
+-	};
 -
-+/*
- 	fsi: gpio-fsi {
- 		compatible = "aspeed,ast2400-cf-fsi-master", "fsi-master";
- 		#address-cells = <2>;
-@@ -69,14 +92,14 @@
- 		enable-gpios = <&gpio ASPEED_GPIO(D, 0) GPIO_ACTIVE_HIGH>;
- 		trans-gpios = <&gpio ASPEED_GPIO(H, 6) GPIO_ACTIVE_HIGH>;
- 	};
+-	fsi: gpio-fsi {
+-		compatible = "aspeed,ast2400-cf-fsi-master", "fsi-master";
+-		#address-cells = <2>;
+-		#size-cells = <0>;
 -
-+*/
- 	gpio-keys {
- 		compatible = "gpio-keys";
- 
- 		checkstop {
- 			label = "checkstop";
+-		memory-region = <&coldfire_memory>;
+-		aspeed,sram = <&sram>;
+-		aspeed,cvic = <&cvic>;
+-
+-		clock-gpios = <&gpio ASPEED_GPIO(A, 4) GPIO_ACTIVE_HIGH>;
+-		data-gpios = <&gpio ASPEED_GPIO(A, 5) GPIO_ACTIVE_HIGH>;
+-		mux-gpios = <&gpio ASPEED_GPIO(A, 6) GPIO_ACTIVE_HIGH>;
+-		enable-gpios = <&gpio ASPEED_GPIO(D, 0) GPIO_ACTIVE_HIGH>;
+-		trans-gpios = <&gpio ASPEED_GPIO(H, 6) GPIO_ACTIVE_HIGH>;
+-	};
+-
+-	gpio-keys {
+-		compatible = "gpio-keys";
+-
+-		checkstop {
+-			label = "checkstop";
 -			gpios = <&gpio ASPEED_GPIO(P, 5) GPIO_ACTIVE_LOW>;
 -			linux,code = <ASPEED_GPIO(P, 5)>;
-+			gpios = <&gpio ASPEED_GPIO(D, 5) GPIO_ACTIVE_LOW>;
-+			linux,code = <ASPEED_GPIO(D, 5)>;
++			gpios = <&gpio ASPEED_GPIO(R, 4) GPIO_ACTIVE_LOW>;
  		};
++*/
  	};
  };
-@@ -141,19 +164,68 @@
+ 
+@@ -141,21 +125,70 @@
  	pinctrl-0 = <&pinctrl_rmii1_default>;
  };
  
@@ -153,7 +146,7 @@ index 2f2cb0e..99ec466 100644
 +	fan@3 {
 +		reg = <0x01>;
 +		aspeed,fan-tach-ch = /bits/ 8 <0x0b>;
- 	};
++	};
 +
 +	fan@4 {
 +		reg = <0x00>;
@@ -168,17 +161,19 @@ index 2f2cb0e..99ec466 100644
 +	fan@6 {
 +		reg = <0x01>;
 +		aspeed,fan-tach-ch = /bits/ 8 <0x0e>;
-+	};
-+};
-+
+ 	};
+ };
+ 
 +
 +
 +&i2c0 {
 +	status = "okay";
- };
- 
++};
++
  &i2c1 {
-@@ -163,19 +235,22 @@
+ 	status = "okay";
+ };
+@@ -163,19 +196,22 @@
  &i2c2 {
  	status = "okay";
  
@@ -208,7 +203,7 @@ index 2f2cb0e..99ec466 100644
  };
  
  &i2c4 {
-@@ -183,15 +258,36 @@
+@@ -183,15 +219,36 @@
  };
  
  &i2c5 {
@@ -247,66 +242,179 @@ index 2f2cb0e..99ec466 100644
  };
  
  &vuart {
-@@ -213,6 +309,43 @@
+@@ -207,171 +264,11 @@
  };
  
- &gpio {
+ &lpc_ctrl {
 +
-+	pin_gpio_r7 {
-+		gpio-hog;
-+		gpios = <ASPEED_GPIO(R, 7) GPIO_ACTIVE_HIGH>;
-+		input;
-+		line-name = "GTEST1";
-+	};
-+
-+	pin_gpio_r6 {
-+		gpio-hog;
-+		gpios = <ASPEED_GPIO(R, 6) GPIO_ACTIVE_HIGH>;
-+		input;
-+		line-name = "GTEST2";
-+	};
-+
-+	pin_gpio_y3 {
-+		gpio-hog;
-+		gpios = <ASPEED_GPIO(Y, 3) GPIO_ACTIVE_HIGH>;
-+		input;
-+		line-name = "GTEST3";
-+	};
-+
-+	pin_gpio_r5 {
-+		gpio-hog;
-+		gpios = <ASPEED_GPIO(R, 5) GPIO_ACTIVE_HIGH>;
-+		input;
-+		line-name = "GTEST4";
-+	};
-+
-+	pin_gpio_r4 {
-+		gpio-hog;
-+		gpios = <ASPEED_GPIO(R, 4) GPIO_ACTIVE_HIGH>;
-+		input;
-+		line-name = "GTEST5";
-+	};
-+
-+/*
- 	pin_func_mode0 {
- 		gpio-hog;
- 		gpios = <ASPEED_GPIO(C, 4) GPIO_ACTIVE_HIGH>;
-@@ -352,8 +485,9 @@
- 		output-high;
- 		line-name = "BMC_TPM_INT_N";
- 	};
-+*/
+ 	status = "okay";
+ 	memory-region = <&flash_memory>;
+ 	flash = <&spi>;
  };
+ 
+-&gpio {
+-	pin_func_mode0 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(C, 4) GPIO_ACTIVE_HIGH>;
+-		output-low;
+-		line-name = "func_mode0";
+-	};
 -
-+/*
- &fsi {
- 	cfam@0,0 {
- 		reg = <0 0>;
-@@ -375,3 +509,4 @@
- 		};
- 	};
- };
-+*/
+-	pin_func_mode1 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(C, 5)  GPIO_ACTIVE_HIGH>;
+-		output-low;
+-		line-name = "func_mode1";
+-	};
+-
+-	pin_func_mode2 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(C, 6) GPIO_ACTIVE_HIGH>;
+-		output-low;
+-		line-name = "func_mode2";
+-	};
+-
+-	pin_gpio_a0 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(A, 0) GPIO_ACTIVE_HIGH>;
+-		input;
+-		line-name = "BMC_FAN_RESERVED_N";
+-	};
+-
+-	pin_gpio_a1 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(A, 1) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "APSS_WDT_N";
+-	};
+-
+-	pin_gpio_b1 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(B, 1) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "APSS_BOOT_MODE";
+-	};
+-
+-	pin_gpio_b2 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(B, 2) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "APSS_RESET_N";
+-	};
+-
+-	pin_gpio_b7 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(B, 7) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "SPIVID_STBY_RESET_N";
+-	};
+-
+-	pin_gpio_d1 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(D, 1) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "BMC_POWER_UP";
+-	};
+-
+-	pin_gpio_f1 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(F, 1) GPIO_ACTIVE_HIGH>;
+-		input;
+-		line-name = "BMC_BATTERY_TEST";
+-	};
+-
+-	pin_gpio_f4 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(F, 4) GPIO_ACTIVE_HIGH>;
+-		input;
+-		line-name = "AST_HW_FAULT_N";
+-	};
+-
+-	pin_gpio_f5 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(F, 5) GPIO_ACTIVE_HIGH>;
+-		input;
+-		line-name = "AST_SYS_FAULT_N";
+-	};
+-
+-	pin_gpio_f7 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(F, 7) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "BMC_FULL_SPEED_N";
+-	};
+-
+-	pin_gpio_g3 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(G, 3) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "BMC_FAN_ERROR_N";
+-	};
+-
+-	pin_gpio_g4 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(G, 4) GPIO_ACTIVE_HIGH>;
+-		input;
+-		line-name = "BMC_WDT_RST1_P";
+-	};
+-
+-	pin_gpio_g5 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(G, 5) GPIO_ACTIVE_HIGH>;
+-		input;
+-		line-name = "BMC_WDT_RST2_P";
+-	};
+-
+-	pin_gpio_h0 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(H, 0) GPIO_ACTIVE_HIGH>;
+-		input;
+-		line-name = "PE_SLOT_TEST_EN_N";
+-	};
+-
+-	pin_gpio_h1 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(H, 1) GPIO_ACTIVE_HIGH>;
+-		input;
+-		line-name = "BMC_RTCRST_N";
+-	};
+-
+-	pin_gpio_h2 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(H, 2) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "SYS_PWROK_BMC";
+-	};
+-
+-	pin_gpio_h7 {
+-		gpio-hog;
+-		gpios = <ASPEED_GPIO(H, 7) GPIO_ACTIVE_HIGH>;
+-		output-high;
+-		line-name = "BMC_TPM_INT_N";
+-	};
+-};
+-
+-&fsi {
+-	cfam@0,0 {
+-		reg = <0 0>;
+-		#address-cells = <1>;
+-		#size-cells = <1>;
+-		chip-id = <0>;
+ 
+-		scom@1000 {
+-			compatible = "ibm,fsi2pib";
+-			reg = <0x1000 0x400>;
+-		};
+ 
+-		fsi_hub0: hub@3400 {
+-			compatible = "ibm,fsi-master-hub";
+-			reg = <0x3400 0x400>;
+-			#address-cells = <2>;
+-			#size-cells = <0>;
+-			no-scan-on-init;
+-		};
+-	};
+-};
 diff --git a/arch/arm/boot/dts/aspeed-g4.dtsi b/arch/arm/boot/dts/aspeed-g4.dtsi
 index 6011692..6544c37 100644
 --- a/arch/arm/boot/dts/aspeed-g4.dtsi

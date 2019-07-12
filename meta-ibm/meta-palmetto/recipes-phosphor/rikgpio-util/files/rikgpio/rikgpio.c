@@ -18,7 +18,6 @@
 
 #include <argp.h>
 #include <sys/stat.h>
-//#include "openbmc_intf.h"
 
 #include <sys/ioctl.h>
 #include <linux/gpio.h>
