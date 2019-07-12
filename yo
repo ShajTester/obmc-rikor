@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export TEMPLATECONF=meta-ibm/meta-palmetto/conf
+. openbmc-env
+bitbake obmc-phosphor-image
+
