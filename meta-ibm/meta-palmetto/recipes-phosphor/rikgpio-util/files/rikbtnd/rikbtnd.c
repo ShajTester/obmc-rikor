@@ -37,15 +37,23 @@
 #include <sys/un.h>
 #include <sys/file.h>
 
-#include <openbmc/gpio.h>
+#include <dirent.h>
 
+#include <sys/ioctl.h>
+#include <linux/gpio.h>
+
+// #include <openbmc/gpio.h>
+
+int get_gpio_base();
 
 pthread_mutex_t web_mutex1 = PTHREAD_MUTEX_INITIALIZER;
+
+int gpio_base = -1;
 
 int power_command()
 {
 	gpio_st g;
-	g.gs_gpio = gpio_num("GPIOY3");
+	g.gs_gpio = gpio_num("GPIOY3") + gpio_base;
 
 	pthread_mutex_lock(&web_mutex1);
 
@@ -92,25 +100,25 @@ static void gpio_event_handle(gpio_poll_st *gp)
 	// char cmd[128] = {0};
 	long long tt;
 
-	if (gp->gs.gs_gpio == gpio_num("GPIOD5"))
+	if (gp->gs.gs_gpio == gpio_num("GPIOD5") + gpio_base)
 	{	// Front panel ID button
 		tt = get_nanos();
 		if ((tt - id_last_time) > 600)
 		{
-			if (gpio_get(gpio_num("GPIOD5")) == GPIO_VALUE_LOW)
+			if (gpio_get(gpio_num("GPIOD5") + gpio_base) == GPIO_VALUE_LOW)
 			{
 				syslog(LOG_INFO, "ID button pressed");
-				gpio_set(gpio_num("GPIOD6"), GPIO_VALUE_HIGH);
+				gpio_set(gpio_num("GPIOD6") + gpio_base, GPIO_VALUE_HIGH);
 			}
 		}
 		id_last_time = tt;
 	}
-	else if (gp->gs.gs_gpio == gpio_num("GPIOR7"))
+	else if (gp->gs.gs_gpio == gpio_num("GPIOR7") + gpio_base)
 	{	// Front panel POWER button
 		tt = get_nanos();
 		if ((tt - pwrbtn_last_time) > 600)
 		{
-			if (gpio_get(gpio_num("GPIOR7")) == GPIO_VALUE_LOW)
+			if (gpio_get(gpio_num("GPIOR7") + gpio_base) == GPIO_VALUE_LOW)
 			{
 				syslog(LOG_INFO, "POWER button pressed");
 				power_state ^= true;
@@ -120,7 +128,7 @@ static void gpio_event_handle(gpio_poll_st *gp)
 		}
 		pwrbtn_last_time = tt;
 	}
-	// else if (gp->gs.gs_gpio == gpio_num("GPIOL0")) { // IRQ_UV_DETECT_N
+	// else if (gp->gs.gs_gpio == gpio_num("GPIOL0") + gpio_base) { // IRQ_UV_DETECT_N
 	//   log_gpio_change(gp, 20*1000);
 	// }
 	// long long nanos = get_nanos();
@@ -220,6 +228,8 @@ main(int argc, char **argv)
 		daemon(0, 1);
 		syslog(LOG_INFO, "rikbtnd: daemon started. ver 0.2");
 
+		gpio_base = get_gpio_base();
+		
 		power_state = get_power_state();
 		if(power_state)
 			power_command();
@@ -237,3 +247,103 @@ main(int argc, char **argv)
 
 	return 0;
 }
+
+
+
+
+
+/**
+ * Determine the GPIO base number for the system.  It is found in
+ * the 'base' file in the /sys/class/gpio/gpiochipX/ directory where the
+ * /sys/class/gpio/gpiochipX/label file has a '1e780000.gpio' in it.
+ *
+ * Note: This method is ASPEED specific.  Could add support for
+ * additional SOCs in the future.
+ *
+ * @return int - the GPIO base number, or < 0 if not found
+ */
+int get_gpio_base()
+{
+  int gpio_base = -1;
+
+  DIR* dir = opendir(GPIO_BASE_PATH);
+  if (dir == NULL)
+  {
+    fprintf(stderr, "Unable to open directory %s\n",
+        GPIO_BASE_PATH);
+    return -1;
+  }
+
+  struct dirent* entry;
+  while ((entry = readdir(dir)) != NULL)
+  {
+    /* Look in the gpiochip<X> directories for a file called 'label' */
+    /* that contains '1e780000.gpio', then in that directory read */
+    /* the GPIO base out of the 'base' file. */
+
+    if (strncmp(entry->d_name, "gpiochip", 8) != 0)
+    {
+      continue;
+    }
+
+    //gboolean is_bmc = FALSE;
+    int is_bmc = 0;
+    char* label_name;
+    asprintf(&label_name, "%s/%s/label",
+        GPIO_BASE_PATH, entry->d_name);
+
+    FILE* fd = fopen(label_name, "r");
+    free(label_name);
+
+    if (!fd)
+    {
+      continue;
+    }
+
+    char label[14];
+    if (fgets(label, 14, fd) != NULL)
+    {
+      if (strcmp(label, "1e780000.gpio") == 0)
+      {
+        //is_bmc = TRUE;
+	is_bmc = 1;
+      }
+    }
+    fclose(fd);
+
+    if (!is_bmc)
+    {
+      continue;
+    }
+
+    char* base_name;
+    asprintf(&base_name, "%s/%s/base",
+        GPIO_BASE_PATH, entry->d_name);
+
+    fd = fopen(base_name, "r");
+    free(base_name);
+
+    if (!fd)
+    {
+      continue;
+    }
+
+    if (fscanf(fd, "%d", &gpio_base) != 1)
+    {
+      gpio_base = -1;
+    }
+    fclose(fd);
+
+    /* We found the right file. No need to continue. */
+    break;
+  }
+  closedir(dir);
+
+  if (gpio_base == -1)
+  {
+    fprintf(stderr, "Could not find GPIO base\n");
+  }
+
+  return gpio_base;
+}
+
