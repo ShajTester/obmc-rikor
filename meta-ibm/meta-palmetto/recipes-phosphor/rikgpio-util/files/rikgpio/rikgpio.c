@@ -41,18 +41,18 @@ int gpio_set_value(short val, int gpionum);
 
 /********************************************************************************************/
 //static char *gpio_rikor[3] = {"GPIOQ7", "GPIOQ4", "GPIOY3"};
-static char *gpio_rikor[36] = {FM_SLPS4, FM_SLPS3, FM_MEM_THERM_EVENT, FM_PCH_BMC_THERMTRIP, FM_CPU_CATERR, FM_CPU_ERR2, IRQ_SERIAL, FM_BMC_MIC_MUX_RST, FM_BMC_PCH_SMI_LPC, SPEAKER_BMC, FP_ID_LED, 
+static char *gpio_rikor[38] = {FM_SLPS4, FM_SLPS3, FM_MEM_THERM_EVENT, FM_PCH_BMC_THERMTRIP, FM_CPU_CATERR, FM_CPU_ERR2, IRQ_SERIAL, FM_BMC_MIC_MUX_RST, FM_BMC_PCH_SMI_LPC, SPEAKER_BMC, FP_ID_LED, 
   FP_ID_BTN, FP_NMI_BTN, FM_BMC_PWRBTN_OUT, FM_BMC_PWR_BTN, FM_NMI_EVENT, FM_CPU1_MEMGH_MEMHOT, FM_CPU1_MEMEF_MEMHOT, FM_CPU0_MEMCD_MEMHOT, FM_CPU0_MEMAB_MEMHOT, FM_BMC_ONCTL, FP_LED_STATUS_AMBER, 
   FM_INTRUDER_HDR, FM_BMC_PCH_SCI_LPC, FP_LED_STATUS_GREEN, FM_PS_PWROK, FM_BMC_FLASH_WP, FM_BIOS_POST_CMPL, IRQ_SML0_ALERT_N, FM_SMI_ACTIVE, FM_FORCE_BMC_UPDATE, FM_CPU1_DISABLE, FP_PWR_BTN_MUX_N,
-  FM_BMC_PWR_BTN_N, RST_BMC_RSTBTN_OUT_N, FP_RST_BTN_N};
+  FM_BMC_PWR_BTN_N, RST_BMC_RSTBTN_OUT_N, FP_RST_BTN_N, SGPIO_DIN, USB_CKL};
 
-static short gpio_dir[36] = {FM_SLPS4_DIR, FM_SLPS3_DIR, FM_MEM_THERM_EVENT_DIR, FM_PCH_BMC_THERMTRIP_DIR, FM_CPU_CATERR_DIR, FM_CPU_ERR2_DIR, IRQ_SERIAL_DIR, FM_BMC_MIC_MUX_RST_DIR, 
+static short gpio_dir[38] = {FM_SLPS4_DIR, FM_SLPS3_DIR, FM_MEM_THERM_EVENT_DIR, FM_PCH_BMC_THERMTRIP_DIR, FM_CPU_CATERR_DIR, FM_CPU_ERR2_DIR, IRQ_SERIAL_DIR, FM_BMC_MIC_MUX_RST_DIR, 
   FM_BMC_PCH_SMI_LPC_DIR, SPEAKER_BMC_DIR, FP_ID_LED_DIR, FP_ID_BTN_DIR, FP_NMI_BTN_DIR, FM_BMC_PWRBTN_OUT_DIR, FM_BMC_PWR_BTN_DIR, FM_NMI_EVENT_DIR, FM_CPU1_MEMGH_MEMHOT_DIR, FM_CPU1_MEMEF_MEMHOT_DIR, 
   FM_CPU0_MEMCD_MEMHOT_DIR, FM_CPU0_MEMAB_MEMHOT_DIR, FM_BMC_ONCTL_DIR, FP_LED_STATUS_AMBER_DIR, FM_INTRUDER_HDR_DIR, FM_BMC_PCH_SCI_LPC_DIR, FP_LED_STATUS_GREEN_DIR, FM_PS_PWROK_DIR, 
   FM_BMC_FLASH_WP_DIR, FM_BIOS_POST_CMPL_DIR, IRQ_SML0_ALERT_N_DIR, FM_SMI_ACTIVE_DIR, FM_FORCE_BMC_UPDATE_DIR, FM_CPU1_DISABLE_DIR, FP_PWR_BTN_MUX_N_DIR, FM_BMC_PWR_BTN_N_DIR, 
-  RST_BMC_RSTBTN_OUT_N_DIR, FP_RST_BTN_N_DIR};
+  RST_BMC_RSTBTN_OUT_N_DIR, FP_RST_BTN_N_DIR, SGPIO_DIN_DIR, USB_CKL_DIR};
 
-int gpio_rikor_num[36] = {};
+int gpio_rikor_num[38] = {};
 /********************************************************************************************/
 
 int main(void)
@@ -62,7 +62,7 @@ int main(void)
   int gpio_base = get_gpio_base();
 
   printf("Well, let's start...\n");
-  for (int i=0; i<36; i++)
+  for (int i=0; i<38; i++)
   {
     tmp = gpio_num(gpio_rikor[i]) + gpio_base;
     if (tmp < 0)
@@ -81,13 +81,13 @@ int main(void)
     }    
   }
   
-  for (int i=0; i<36; i++)
+  for (int i=0; i<38; i++)
   {
     tmp = gpio_export(gpio_rikor_num[i]);
   }
 
 
-  for (int i=0; i<36; i++)
+  for (int i=0; i<38; i++)
   {
     tmp = gpio_set_direction(gpio_dir[i], gpio_rikor_num[i]);
     //For some outputs
