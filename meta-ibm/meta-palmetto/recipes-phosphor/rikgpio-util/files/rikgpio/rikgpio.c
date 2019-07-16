@@ -67,9 +67,9 @@ int main(void)
     tmp = gpio_num(gpio_rikor[i]) + gpio_base;
     if (tmp < 0)
     {
-#ifdef DEBUG_MODE
+//#ifdef DEBUG_MODE
       printf("Failed to enum %s port\n", gpio_rikor[i]);
-#endif	//DEBUG_MODE
+//#endif	//DEBUG_MODE
       gpio_rikor_num[i] = 0;
     }
     else

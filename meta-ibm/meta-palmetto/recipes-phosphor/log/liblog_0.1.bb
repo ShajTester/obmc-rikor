@@ -14,37 +14,23 @@
 # Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
-#
 
-SUMMARY = ""
-DESCRIPTION = ""
-SECTION = "base"
+SUMMARY = "Log util functions"
+DESCRIPTION = "some macros to log"
+SECTION = "dev"
 PR = "r1"
 LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=8264535c0c4e9c6c335635c4026a8022"
+LIC_FILES_CHKSUM = "file://log.h;beginline=4;endline=16;md5=da35978751a9d71b73679307c4d296ec"
 
-SRC_URI = "file://rikgpio \
-          "
+SRC_URI += "file://src \
+           "
 
-S = "${WORKDIR}/rikgpio"
-
-# DEPENDS += "libgpiod"
-
-pkgdir = "rikgpio"
+S = "${WORKDIR}/src"
 
 do_install() {
-  dst="${D}/usr/local/fbpackages/${pkgdir}"
-  bin="${D}/usr/local/bin"
-  install -d $dst
-  install -d $bin
-  install -m 755 rikgpio ${dst}/rikgpio
-  ln -snf ../fbpackages/${pkgdir}/rikgpio ${bin}/rikgpio
+  # common lib and include files
+  install -d ${D}${includedir}/openbmc
+  install -m 0644 log.h ${D}${includedir}/openbmc/log.h
 }
 
-FBPACKAGEDIR = "${prefix}/local/fbpackages"
-
-FILES_${PN} = "${FBPACKAGEDIR}/rikgpio ${prefix}/local/bin"
-
-#RDEPENDS_${PN} = "glibc"
-
-
+FILES_${PN}-dev = "${includedir}/openbmc/log.h"

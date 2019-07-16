@@ -18,6 +18,11 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+
+#define _GNU_SOURCE
+
+#include <fcntl.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -40,9 +45,9 @@
 #include <dirent.h>
 
 #include <sys/ioctl.h>
-#include <linux/gpio.h>
+//#include <linux/gpio.h>
 
-// #include <openbmc/gpio.h>
+#include <openbmc/gpio.h>
 
 int get_gpio_base();
 
@@ -262,6 +267,11 @@ main(int argc, char **argv)
  *
  * @return int - the GPIO base number, or < 0 if not found
  */
+
+#define GPIO_PORT_OFFSET 8
+#define GPIO_BASE_PATH "/sys/class/gpio"
+
+
 int get_gpio_base()
 {
   int gpio_base = -1;

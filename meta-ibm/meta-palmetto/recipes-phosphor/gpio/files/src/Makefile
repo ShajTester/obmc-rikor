@@ -1,4 +1,4 @@
-# Copyright 2014-present Facebook. All Rights Reserved.
+# Copyright 2015-present Facebook. All Rights Reserved.
 #
 # This program file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the
@@ -14,37 +14,21 @@
 # Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
-#
 
-SUMMARY = ""
-DESCRIPTION = ""
-SECTION = "base"
-PR = "r1"
-LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=8264535c0c4e9c6c335635c4026a8022"
+lib: libgpio.so
 
-SRC_URI = "file://rikgpio \
-          "
+CFLAGS += -Wall -Werror
 
-S = "${WORKDIR}/rikgpio"
+libgpio.so: gpio.o gpio_name.o
+	$(CC) -shared -o libgpio.so gpio.o gpio_name.o -lc -pthread $(LDFLAGS)
 
-# DEPENDS += "libgpiod"
+gpio.o: gpio.c
+	$(CC) $(CFLAGS) -fPIC -c -o gpio.o gpio.c
 
-pkgdir = "rikgpio"
+gpio_name.o: gpio_name.c
+	$(CC) $(CFLAGS) -fPIC -c -o gpio_name.o gpio_name.c
 
-do_install() {
-  dst="${D}/usr/local/fbpackages/${pkgdir}"
-  bin="${D}/usr/local/bin"
-  install -d $dst
-  install -d $bin
-  install -m 755 rikgpio ${dst}/rikgpio
-  ln -snf ../fbpackages/${pkgdir}/rikgpio ${bin}/rikgpio
-}
+.PHONY: clean
 
-FBPACKAGEDIR = "${prefix}/local/fbpackages"
-
-FILES_${PN} = "${FBPACKAGEDIR}/rikgpio ${prefix}/local/bin"
-
-#RDEPENDS_${PN} = "glibc"
-
-
+clean:
+	rm -rf *.o libgpio.so
