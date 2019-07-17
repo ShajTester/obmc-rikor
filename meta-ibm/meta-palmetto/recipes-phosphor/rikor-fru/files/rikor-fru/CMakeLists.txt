@@ -27,3 +27,5 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 # Set up required subdirectories
 add_subdirectory (src)
 
+install(PROGRAMS fru-setup.sh DESTINATION bin)
+

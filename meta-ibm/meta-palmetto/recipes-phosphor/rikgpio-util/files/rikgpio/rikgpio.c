@@ -61,15 +61,13 @@ int main(void)
 
   int gpio_base = get_gpio_base();
 
-  printf("Well, let's start...\n");
+  printf("Well, let's start rikgpio...\n");
   for (int i=0; i<38; i++)
   {
     tmp = gpio_num(gpio_rikor[i]) + gpio_base;
     if (tmp < 0)
     {
-//#ifdef DEBUG_MODE
       printf("Failed to enum %s port\n", gpio_rikor[i]);
-//#endif	//DEBUG_MODE
       gpio_rikor_num[i] = 0;
     }
     else
@@ -93,14 +91,16 @@ int main(void)
     //For some outputs
   }
   
+  gpio_set_value(1, gpio_num(FM_BMC_PWR_BTN_N) + gpio_base);
+  gpio_set_value(1, gpio_num(RST_BMC_RSTBTN_OUT_N) + gpio_base);
+  gpio_set_value(1, gpio_num(FP_RST_BTN_N) + gpio_base);
   gpio_set_value(1, gpio_num(FP_ID_LED) + gpio_base);
   gpio_set_value(1, gpio_num(FP_LED_STATUS_AMBER) + gpio_base);
   gpio_set_value(1, gpio_num(FP_LED_STATUS_GREEN) + gpio_base);
 
+  // system("/usr/bin/ledblink-1.0 135 10 &");             //135 - AMBER led gpio
 
-  system("/usr/bin/ledblink-1.0 135 10 &");             //135 - AMBER led gpio
-
-  printf("Complete...\n");
+  printf("rikgpio Complete...\n");
 
   return 0;
 }

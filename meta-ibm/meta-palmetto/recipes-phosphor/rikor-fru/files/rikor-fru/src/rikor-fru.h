@@ -8,7 +8,7 @@
 #include <arpa/inet.h>
 
 #define DEFAT24ADDR 0x50
-#define EEPROM_PATH "/sys/devices/platform/ast-i2c.3/i2c-3/3-00%02X/eeprom"
+#define EEPROM_PATH "/sys/class/i2c-dev/i2c-3/device/3-00%02X/eeprom"
 
 #define ERRCRC      -2
 

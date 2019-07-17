@@ -28,6 +28,9 @@ target_link_libraries(rikor-fru
   # ${GLIB}
 )
 
+
+configure_file("${PROJECT_SOURCE_DIR}/rikor-fru.service" "${PROJECT_BINARY_DIR}/rikor-fru.service" COPYONLY)
+configure_file("${PROJECT_SOURCE_DIR}/fru-setup.sh" "${PROJECT_BINARY_DIR}/fru-setup.sh" COPYONLY)
 # The rule to install binary
 install (TARGETS rikor-fru-util RUNTIME DESTINATION bin)
 install (TARGETS rikor-fru 

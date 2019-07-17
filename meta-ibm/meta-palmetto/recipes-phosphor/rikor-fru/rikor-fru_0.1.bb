@@ -30,19 +30,15 @@ FILES_${PN} += "${libdir}"
 FILES_${PN} += "${libdir}/*.so"
 
 
-# SRC_URI += "file://rikor-fru/fru-setup.sh"
-
 do_install_append() {
-  install -d ${D}${sysconfdir}/init.d
-  install -d ${D}${sysconfdir}/rcS.d
-  install -m 755 ../rikor-fru/fru-setup.sh ${D}${sysconfdir}/init.d/fru-setup.sh
-  # update-rc.d -r ${D} ../rikor-fru/fru-setup.sh start 90 S .
+  install -d ${D}${systemd_system_unitdir}
+  install -m 755 rikor-fru.service ${D}${systemd_system_unitdir}/rikor-fru.service
 }
 
-FILES_${PN} += "${sysconfdir}"
+FILES_${PN} += "${systemd_system_unitdir}"
 
-INITSCRIPT_NAME = "fru-setup.sh"
-INITSCRIPT_PARAMS = "defaults 90"
+inherit systemd
 
-inherit update-rc.d
+SYSTEMD_SERVICE_${PN} = "rikor-fru.service"
 
+REQUIRED_DISTRO_FEATURES= "systemd"

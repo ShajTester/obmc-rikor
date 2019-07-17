@@ -16,15 +16,14 @@
 # Boston, MA 02110-1301 USA
 #
 
-SUMMARY = ""
-DESCRIPTION = ""
+SUMMARY = "rikbtnd"
+DESCRIPTION = "rikbtnd"
 SECTION = "base"
 PR = "r1"
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=8264535c0c4e9c6c335635c4026a8022"
 
-SRC_URI = "file://rikbtnd \
-          "
+SRC_URI = "file://rikbtnd"
 
 S = "${WORKDIR}/rikbtnd"
 
@@ -40,17 +39,18 @@ do_install() {
   install -m 755 rikbtnd ${dst}/rikbtnd
   ln -snf ../fbpackages/${pkgdir}/rikbtnd ${bin}/rikbtnd
 
-  install -d ${D}${sysconfdir}/init.d
-  install -d ${D}${sysconfdir}/rcS.d
-  install -m 755 rikbtnd-setup.sh ${D}${sysconfdir}/init.d/rikbtnd-setup.sh
-  update-rc.d -r ${D} rikbtnd-setup.sh start 99 S .
+  install -d ${D}${systemd_system_unitdir}
+  install -m 755 rikbtnd.service ${D}${systemd_system_unitdir}/rikbtnd.service
 }
 
 FBPACKAGEDIR = "${prefix}/local/fbpackages"
 
 FILES_${PN} = "${FBPACKAGEDIR}/rikbtnd ${prefix}/local/bin"
-FILES_${PN} += "${sysconfdir}"
+FILES_${PN} += "${systemd_system_unitdir}"
 
 RDEPENDS_${PN} = "glibc libgpio"
 
+inherit systemd
+SYSTEMD_SERVICE_${PN} = "rikbtnd.service"
 
+REQUIRED_DISTRO_FEATURES= "systemd"

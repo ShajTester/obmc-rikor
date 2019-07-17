@@ -55,8 +55,27 @@ LICENSE = "Apache-2.0"
 FEATURE_PACKAGES_obmc-net-ipmi_qemuall = ""
 
 # Install entire Phosphor application stack by default
+IMAGE_FEATURES += " \
+        ssh-server-dropbear \
+        "
+
 
 IMAGE_FEATURES_append_df-obmc-ubi-fs = " read-only-rootfs"
+
+
+CORE_IMAGE_EXTRA_INSTALL_append = " bash \
+        packagegroup-obmc-apps-extras \
+        packagegroup-obmc-apps-extrasdevtools \
+        i2c-tools \
+        obmc-console \
+        pam-plugin-access \
+        pam-ipmi \
+        ${OBMC_IMAGE_EXTRA_INSTALL} \
+        ffdc \
+        rsync \
+        rng-tools \
+        lrzsz \
+        "
 
 
 OBMC_IMAGE_EXTRA_INSTALL ?= ""

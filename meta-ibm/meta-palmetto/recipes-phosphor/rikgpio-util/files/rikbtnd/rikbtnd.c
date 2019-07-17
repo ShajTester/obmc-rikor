@@ -231,7 +231,7 @@ main(int argc, char **argv)
 	else 
 	{
 		daemon(0, 1);
-		syslog(LOG_INFO, "rikbtnd: daemon started. ver 0.2");
+		syslog(LOG_INFO, "daemon started. ver 0.3");
 
 		gpio_base = get_gpio_base();
 		
