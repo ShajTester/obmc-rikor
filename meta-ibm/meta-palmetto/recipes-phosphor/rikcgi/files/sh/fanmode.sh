@@ -26,22 +26,41 @@ if [[ $SIZE == $DEFSIZE ]]; then
 	FAN6=`echo "${Q[5]}"|cut -d : -f 2`
 	FAN7=`echo "${Q[6]}"|cut -d : -f 2`
 	FAN8=`echo "${Q[7]}"|cut -d : -f 2`
+	
+	FAN1V=$((255/100)*FAN1)
+	FAN2V=$((255/100)*FAN2)
+	FAN3V=$((255/100)*FAN3)
+	FAN4V=$((255/100)*FAN4)
+	FAN5V=$((255/100)*FAN5)
+	FAN6V=$((255/100)*FAN6)
+	FAN7V=$((255/100)*FAN7)
+	FAN8V=$((255/100)*FAN8)
 
     	killall autofan.sh
-	/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN1 0
-	/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN2 1
-	/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN3 2
-	/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN4 3
-	/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN5 4
-	/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN6 5
-	/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN7 6
-	/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN8 7
+	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN1 0
+	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN2 1
+	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN3 2
+	#usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN4 3
+	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN5 4
+	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN6 5
+	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN7 6
+	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN8 7
 
 	#echo $FAN1 $FAN2 $FAN3 $FAN4 $FAN5 $FAN6 $FAN7 $FAN8
 
+	echo FAN1V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm1
+	echo FAN2V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm2
+	echo FAN3V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm3
+	echo FAN4V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm4
+	echo FAN5V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm5
+	echo FAN6V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm6
+	echo FAN7V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm7
+	echo FAN8V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm8
+
 else
 	killall autofan.sh
-	./autofan.sh &
+	#Пока не будем включать автоматическую регулировку
+	#./autofan.sh &
 	#echo "AutoMODE"
 fi
 

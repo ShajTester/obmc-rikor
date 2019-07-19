@@ -2,54 +2,9 @@
 
 function get_speed
 {
-  PWM_DIR=/sys/devices/platform/ast_pwm_tacho.0
-  set -e
-
-  # refer to the comments in init_pwn.sh regarding
-  # the fan unit and tacho mapping
-  if [ "$#" -eq 0 ]; then
-      TACHOS="0:0 1:1 2:2 3:3 4:7 5:6 6:5 7:4"
-  elif [ "$#" -eq 1 ]; then
-      case "$1" in
-      "0")
-          TACHOS="0:0"
-          ;;
-      "1")
-          TACHOS="1:1"
-          ;;
-      "2")
-          TACHOS="2:2"
-          ;;
-      "3")
-          TACHOS="3:3"
-          ;;
-      "4")
-          TACHOS="4:7"
-          ;;
-      "5")
-          TACHOS="5:6"
-          ;;
-      "6")
-          TACHOS="6:5"
-          ;;
-      "7")
-          TACHOS="7:4"
-          ;;
-      *)
-          usage
-          exit 1
-          ;;
-      esac
-  else
-      usage
-      exit 1
-  fi
-
-  for fan_tacho in $TACHOS; do
-      fan=${fan_tacho%%:*}
-      tacho=${fan_tacho##*:}
-      echo "$(cat $PWM_DIR/tacho${tacho}_rpm)"
-  done
+  num=$1
+  PWM_DIR=/sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0
+  echo "$(cat $PWM_DIR/pwm${num}_input)"
 }
 
 TACH1=`get_speed 0` || exit 2
