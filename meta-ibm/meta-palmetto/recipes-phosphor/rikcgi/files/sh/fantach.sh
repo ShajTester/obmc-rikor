@@ -4,6 +4,8 @@ function get_speed
 {
   num=$1
   PWM_DIR=/sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0
+  set -e
+
   echo "$(cat $PWM_DIR/pwm${num}_input)"
 }
 

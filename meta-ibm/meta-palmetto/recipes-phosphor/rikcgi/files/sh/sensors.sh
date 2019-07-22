@@ -1,26 +1,56 @@
 #!/bin/bash
 
-sensors tmp75-i2c-6-49 > /www/pages/sensors.log
-LINE1=`sed -n 3p /www/pages/sensors.log`
-sensors tmp75-i2c-6-4b > /www/pages/sensors.log
-LINE2=`sed -n 3p /www/pages/sensors.log`
-sensors tmp75-i2c-6-4c > /www/pages/sensors.log
-LINE3=`sed -n 3p /www/pages/sensors.log`
-sensors tmp75-i2c-6-4e > /www/pages/sensors.log
-LINE4=`sed -n 3p /www/pages/sensors.log`
-sensors tmp421-i2c-6-4f > /www/pages/sensors.log
-LINE5=`sed -n 3p /www/pages/sensors.log`
+function get_sensor1
+{
+   S1_DIR=/sys/class/i2c-dev/i2c-6/device/6-0049/hwmon/hwmon1
+   set -e
 
-VAL= echo ${LINE1:15:1}${LINE1:16:1}${LINE1:17:1}${LINE1:18:1}${LINE1:19:1} > /www/pages/sentmp.log
-VAL1=`sed -n 1p /www/pages/sentmp.log`
-VAL= echo ${LINE2:15:1}${LINE2:16:1}${LINE2:17:1}${LINE2:18:1}${LINE2:19:1} > /www/pages/sentmp.log
-VAL2=`sed -n 1p /www/pages/sentmp.log`
-VAL= echo ${LINE3:15:1}${LINE3:16:1}${LINE3:17:1}${LINE3:18:1}${LINE3:19:1} > /www/pages/sentmp.log
-VAL3=`sed -n 1p /www/pages/sentmp.log`
-VAL= echo ${LINE4:15:1}${LINE4:16:1}${LINE4:17:1}${LINE4:18:1}${LINE4:19:1} > /www/pages/sentmp.log
-VAL4=`sed -n 1p /www/pages/sentmp.log`
-VAL= echo ${LINE5:18:1}${LINE5:19:1}${LINE5:20:1}${LINE5:21:1}${LINE5:22:1} > /www/pages/sentmp.log 
-VAL5=`sed -n 1p /www/pages/sentmp.log`
+   echo "$(cat $S1_DIR/temp1_input)"
+}
+
+function get_sensor2
+{
+   S2_DIR=/sys/class/i2c-dev/i2c-6/device/6-004b/hwmon/hwmon4
+   set -e
+
+   echo "$(cat $S2_DIR/temp1_input)"
+}
+
+function get_sensor3
+{
+   S3_DIR=/sys/class/i2c-dev/i2c-6/device/6-004c/hwmon/hwmon3
+   set -e
+
+   echo "$(cat $S3_DIR/temp1_input)"
+}
+
+function get_sensor4
+{
+   S4_DIR=/sys/class/i2c-dev/i2c-6/device/6-004e/hwmon/hwmon2
+   set -e
+
+   echo "$(cat $S4_DIR/temp1_input)"
+}
+
+function get_sensor5
+{
+   S5_DIR=/sys/class/i2c-dev/i2c-6/device/6-004f/hwmon/hwmon5
+   set -e
+
+   echo "$(cat $S5_DIR/temp1_input)"
+}
+
+SVAL1=`get_sensor1` || exit 1
+SVAL2=`get_sensor2` || exit 1
+SVAL3=`get_sensor3` || exit 1
+SVAL4=`get_sensor4` || exit 1
+SVAL5=`get_sensor5` || exit 1
+
+VAL1=$(( $SVAL1 / 100 ))
+VAL2=$(( $SVAL2 / 100 ))
+VAL3=$(( $SVAL3 / 100 ))
+VAL4=$(( $SVAL4 / 100 ))
+VAL5=$(( $SVAL5 / 100 ))
 
 STR="[[\"Sensor1\",\"$VAL1\"],[\"Sensor2\",\"$VAL2\"],[\"Sensor3\",\"$VAL3\"],[\"Sensor4\",\"$VAL4\"],[\"Sensor5\",\"$VAL5\"]]"
 
