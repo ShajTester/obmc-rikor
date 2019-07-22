@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Обработка DATA для входного запроса POST
-echo "" > /www/pages/fanpost.json
+echo -n "" > /www/pages/fanpost.json
 
 if [ "$REQUEST_METHOD" = "POST" ]; then
     if [ "$CONTENT_LENGTH" -gt 0 ]; then
@@ -18,23 +18,23 @@ SIZE=${#Q[@]}
 DEFSIZE=11
 echo "$SIZE"
 if [[ $SIZE == $DEFSIZE ]]; then
-	FAN1=`echo "${Q[0]}"|cut -d : -f 2`
-	FAN2=`echo "${Q[1]}"|cut -d : -f 2`
-	FAN3=`echo "${Q[2]}"|cut -d : -f 2`
-	FAN4=`echo "${Q[3]}"|cut -d : -f 2`
-	FAN5=`echo "${Q[4]}"|cut -d : -f 2`
-	FAN6=`echo "${Q[5]}"|cut -d : -f 2`
-	FAN7=`echo "${Q[6]}"|cut -d : -f 2`
-	FAN8=`echo "${Q[7]}"|cut -d : -f 2`
+	FAN1=`echo "${Q[0]}" | cut -d : -f 2`
+	FAN2=`echo "${Q[1]}" | cut -d : -f 2`
+	FAN3=`echo "${Q[2]}" | cut -d : -f 2`
+	FAN4=`echo "${Q[3]}" | cut -d : -f 2`
+	FAN5=`echo "${Q[4]}" | cut -d : -f 2`
+	FAN6=`echo "${Q[5]}" | cut -d : -f 2`
+	FAN7=`echo "${Q[6]}" | cut -d : -f 2`
+	FAN8=`echo "${Q[7]}" | cut -d : -f 2`
 	
-	FAN1V=$((255/100)*FAN1)
-	FAN2V=$((255/100)*FAN2)
-	FAN3V=$((255/100)*FAN3)
-	FAN4V=$((255/100)*FAN4)
-	FAN5V=$((255/100)*FAN5)
-	FAN6V=$((255/100)*FAN6)
-	FAN7V=$((255/100)*FAN7)
-	FAN8V=$((255/100)*FAN8)
+	FAN1V=$(( (255 * $FAN1) / 100 ))
+	FAN2V=$(( (255 * $FAN2) / 100 ))
+	FAN3V=$(( (255 * $FAN3) / 100 ))
+	FAN4V=$(( (255 * $FAN4) / 100 ))
+	FAN5V=$(( (255 * $FAN5) / 100 ))
+	FAN6V=$(( (255 * $FAN6) / 100 ))
+	FAN7V=$(( (255 * $FAN7) / 100 ))
+	FAN8V=$(( (255 * $FAN8) / 100 ))
 
     	killall autofan.sh
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN1 0

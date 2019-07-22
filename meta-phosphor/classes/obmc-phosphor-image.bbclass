@@ -41,7 +41,7 @@ FEATURE_PACKAGES_obmc-fan-mgmt ?= "${@cf_enabled(d, 'obmc-phosphor-fan-mgmt', 'v
 #FEATURE_PACKAGES_obmc-logging-mgmt ?= "${@df_enabled(d, 'obmc-logging-mgmt', 'packagegroup-obmc-apps-logging')}"
 #FEATURE_PACKAGES_obmc-remote-logging-mgmt ?= "packagegroup-obmc-apps-remote-logging"
 #FEATURE_PACKAGES_obmc-net-ipmi ?= "phosphor-ipmi-net"
-#FEATURE_PACKAGES_obmc-sensors ?= "packagegroup-obmc-apps-sensors"
+FEATURE_PACKAGES_obmc-sensors ?= "packagegroup-obmc-apps-sensors"
 #FEATURE_PACKAGES_obmc-software ?= "packagegroup-obmc-apps-software"
 #FEATURE_PACKAGES_obmc-system-mgmt ?= "${@df_enabled(d, 'obmc-phosphor-system-mgmt', 'virtual-obmc-system-mgmt')}"
 #FEATURE_PACKAGES_obmc-debug-collector ?= "packagegroup-obmc-apps-debug-collector"
@@ -84,6 +84,7 @@ IMAGE_FEATURES += " \
         obmc-fan-control \
         obmc-fan-mgmt \
         ssh-server-dropbear \
+	obmc-sensors \
         "
 
 
