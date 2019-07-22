@@ -1,7 +1,5 @@
 diff --git a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
-old mode 100644
-new mode 100755
-index 2f2cb0e..eeccf77
+index 2f2cb0e..f7a9b8c 100644
 --- a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 +++ b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 @@ -14,7 +14,7 @@
@@ -109,7 +107,18 @@ index 2f2cb0e..eeccf77
  };
  
  &fmc {
-@@ -141,78 +167,414 @@
+@@ -92,6 +118,10 @@
+ 	};
+ };
+ 
++&vhub {
++	status = "okay";
++};
++
+ &spi {
+ 	status = "okay";
+ 	pinctrl-names = "default";
+@@ -141,78 +171,417 @@
  	pinctrl-0 = <&pinctrl_rmii1_default>;
  };
  
@@ -122,70 +131,74 @@ index 2f2cb0e..eeccf77
 +};
 +
 +&video {
- 	status = "okay";
++	status = "okay";
 +	memory-region = <&video_engine_memory>;
++};
++
++
++&adc {
+ 	status = "okay";
 +};
  
 -	eeprom@50 {
 -		compatible = "atmel,24c256";
 -		reg = <0x50>;
 -		pagesize = <64>;
-+
-+&adc {
-+	status = "okay";
-+};
-+
 +&pwm_tacho {
 +	status = "okay";
 +	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_pwm0_default &pinctrl_pwm1_default>;
++	pinctrl-0 = <&pinctrl_pwm0_default &pinctrl_pwm1_default &pinctrl_pwm2_default &pinctrl_pwm3_default &pinctrl_pwm4_default &pinctrl_pwm5_default &pinctrl_pwm6_default &pinctrl_pwm7_default>;
 +
 +	fan@0 {
 +		reg = <0x00>;
-+		aspeed,fan-tach-ch = /bits/ 8 <0x08>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x00>;
  	};
  
 -	rtc@68 {
 -		compatible = "dallas,ds3231";
 -		reg = <0x68>;
 +	fan@1 {
-+		reg = <0x00>;
-+		aspeed,fan-tach-ch = /bits/ 8 <0x09>;
++		reg = <0x01>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x01>;
 +	};
 +
 +	fan@2 {
-+		reg = <0x01>;
-+		aspeed,fan-tach-ch = /bits/ 8 <0x0a>;
++		reg = <0x02>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x02>;
 +	};
 +
 +	fan@3 {
-+		reg = <0x01>;
-+		aspeed,fan-tach-ch = /bits/ 8 <0x0b>;
++		reg = <0x03>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x03>;
 +	};
 +
 +	fan@4 {
-+		reg = <0x00>;
-+		aspeed,fan-tach-ch = /bits/ 8 <0x0c>;
++		reg = <0x04>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x04>;
 +	};
 +
 +	fan@5 {
-+		reg = <0x00>;
-+		aspeed,fan-tach-ch = /bits/ 8 <0x0d>;
++		reg = <0x05>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x05>;
 +	};
 +
 +	fan@6 {
-+		reg = <0x01>;
-+		aspeed,fan-tach-ch = /bits/ 8 <0x0e>;
++		reg = <0x06>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x06>;
  	};
- };
- 
++	fan@7 {
++		reg = <0x07>;
++		aspeed,fan-tach-ch = /bits/ 8 <0x07>;
++	};
++};
++
 +
 +
 +&i2c0 {
 +	status = "okay";
 +	//status = "disabled";
-+};
-+
+ };
+ 
  &i2c1 {
  	status = "okay";
 +	//status = "disabled";
@@ -210,18 +223,17 @@ index 2f2cb0e..eeccf77
 +		reg = <0x56>;
 +		pagesize = <64>;
 +	};
-+	*/
++*/
  
 -	occ-hwmon@50 {
 -		compatible = "ibm,p8-occ-hwmon";
 -		reg = <0x50>;
-+	/*
++/*
 +	rtc@68 {
 +		compatible = "dallas,ds3231";
 +		reg = <0x68>;
  	};
 +*/
-+	//status = "disabled";
  };
  
  &i2c4 {
@@ -545,7 +557,7 @@ index 2f2cb0e..eeccf77
  	pin_func_mode0 {
  		gpio-hog;
  		gpios = <ASPEED_GPIO(C, 4) GPIO_ACTIVE_HIGH>;
-@@ -352,8 +714,9 @@
+@@ -352,8 +721,9 @@
  		output-high;
  		line-name = "BMC_TPM_INT_N";
  	};
@@ -556,7 +568,7 @@ index 2f2cb0e..eeccf77
  &fsi {
  	cfam@0,0 {
  		reg = <0 0>;
-@@ -375,3 +738,4 @@
+@@ -375,3 +745,4 @@
  		};
  	};
  };
