@@ -1,7 +1,7 @@
 #!/bin/bash
 
 read INSTR
-logger "${INSTR}"
+# logger "${INSTR}"
 
 VAL=`cat /sys/class/gpio/gpio322/value`
 

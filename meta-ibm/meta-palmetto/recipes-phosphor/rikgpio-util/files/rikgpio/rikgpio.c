@@ -97,6 +97,8 @@ int main(void)
   gpio_set_value(1, gpio_num(FP_ID_LED) + gpio_base);
   gpio_set_value(1, gpio_num(FP_LED_STATUS_AMBER) + gpio_base);
   gpio_set_value(1, gpio_num(FP_LED_STATUS_GREEN) + gpio_base);
+  
+  gpio_set_value(0, gpio_num(FM_BMC_FLASH_WP) + gpio_base);
 
   // system("/usr/bin/ledblink-1.0 135 10 &");             //135 - AMBER led gpio
 

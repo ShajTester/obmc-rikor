@@ -40,7 +40,7 @@ if [[ $SIZE == $DEFSIZE ]]; then
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN1 0
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN2 1
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN3 2
-	#usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN4 3
+	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN4 3
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN5 4
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN6 5
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN7 6
@@ -48,14 +48,14 @@ if [[ $SIZE == $DEFSIZE ]]; then
 
 	#echo $FAN1 $FAN2 $FAN3 $FAN4 $FAN5 $FAN6 $FAN7 $FAN8
 
-	echo FAN1V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm1
-	echo FAN2V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm2
-	echo FAN3V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm3
-	echo FAN4V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm4
-	echo FAN5V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm5
-	echo FAN6V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm6
-	echo FAN7V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm7
-	echo FAN8V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm8
+	echo $FAN1V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm1
+	echo $FAN2V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm2
+	echo $FAN3V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm3
+	echo $FAN4V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm4
+	echo $FAN5V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm5
+	echo $FAN6V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm6
+	echo $FAN7V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm7
+	echo $FAN8V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm8
 
 else
 	killall autofan.sh
@@ -64,3 +64,4 @@ else
 	#echo "AutoMODE"
 fi
 
+cat fanpost.json

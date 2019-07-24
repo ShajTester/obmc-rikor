@@ -208,6 +208,8 @@ void *start_pipe(void *ptr)
 }
 
 
+static const char pidfilename[] = "/var/run/rikbtnd.pid";
+
 int
 main(int argc, char **argv)
 {
@@ -218,7 +220,7 @@ main(int argc, char **argv)
 
 	openlog("rikbtnd", LOG_CONS, LOG_DAEMON);
 
-	pid_file = open("/var/run/rikbtnd.pid", O_CREAT | O_RDWR, 0666);
+	pid_file = open(pidfilename, O_CREAT | O_RDWR, 0666);
 	rc = flock(pid_file, LOCK_EX | LOCK_NB);
 	if (rc) 
 	{
@@ -231,7 +233,11 @@ main(int argc, char **argv)
 	else 
 	{
 		daemon(0, 1);
-		syslog(LOG_INFO, "daemon started. ver 0.3");
+
+		char tstr[32];
+		sprintf(tstr, "%d", getpid());
+		printf("rikbtnd daemon started. ver 0.4. PID %s", tstr);
+		write(pid_file, tstr, strlen(tstr));
 
 		gpio_base = get_gpio_base();
 		
@@ -249,6 +255,9 @@ main(int argc, char **argv)
 
 		pthread_join(web_thread, NULL);
 	}
+
+	unlink(pidfilename);
+    flock(pid_file, LOCK_UN);
 
 	return 0;
 }

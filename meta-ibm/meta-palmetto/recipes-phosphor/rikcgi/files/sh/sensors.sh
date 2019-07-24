@@ -46,11 +46,11 @@ SVAL3=`get_sensor3` || exit 1
 SVAL4=`get_sensor4` || exit 1
 SVAL5=`get_sensor5` || exit 1
 
-VAL1=$(( $SVAL1 / 100 ))
-VAL2=$(( $SVAL2 / 100 ))
-VAL3=$(( $SVAL3 / 100 ))
-VAL4=$(( $SVAL4 / 100 ))
-VAL5=$(( $SVAL5 / 100 ))
+VAL1=$(( $SVAL1 / 1000 )).$(( ($SVAL1 % 1000) / 100 ))°C
+VAL2=$(( $SVAL2 / 1000 )).$(( ($SVAL2 % 1000) / 100 ))°C
+VAL3=$(( $SVAL3 / 1000 )).$(( ($SVAL3 % 1000) / 100 ))°C
+VAL4=$(( $SVAL4 / 1000 )).$(( ($SVAL4 % 1000) / 100 ))°C
+VAL5=$(( $SVAL5 / 1000 )).$(( ($SVAL5 % 1000) / 100 ))°C
 
 STR="[[\"Sensor1\",\"$VAL1\"],[\"Sensor2\",\"$VAL2\"],[\"Sensor3\",\"$VAL3\"],[\"Sensor4\",\"$VAL4\"],[\"Sensor5\",\"$VAL5\"]]"
 

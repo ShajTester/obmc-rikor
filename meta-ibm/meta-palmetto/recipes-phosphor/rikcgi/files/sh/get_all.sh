@@ -1,9 +1,9 @@
 #!/bin/bash
 
-FWINFO=$(cat /etc/issue.net | awk 'BEGIN{RS=""; FS=" "} {print "Firmware " $3}' | sed 's/yosemite/rikor/')
-FWINFO=$FWINFO" build "$(cat /etc/version)
+# FWINFO=$(cat /etc/issue.net | awk 'BEGIN{RS=""; FS=" "} {print "Firmware " $3}' | sed 's/yosemite/rikor/')
+# FWINFO=$FWINFO" build "$(cat /etc/version)
+FWINFO=$(grep VERSION_ID $"/usr/lib/os-release" | awk -F= '{gsub(/"/, ""); print $2}')
 
-# HWINFO="Rikor R-BD-ESR-V4-16EA v.5 / BIOS 2.8 / PCIE 3.0 / CPU: 2 x Intel Xeon E5 2630 v3 / RAM:256 GB"
 HWINFO="Rikor R-BD-ESR-V4-16EA v.5"
 
 JSON="{"
@@ -11,15 +11,11 @@ JSON=$JSON"\"sysinfo\":{\"fwinfo\":\"$FWINFO\",\"hwinfo\":\"$HWINFO\"}"
 JSON=$JSON",\"voltage\":"`./voltage.sh`
 JSON=$JSON",\"fantach\":"`./fantach.sh`
 JSON=$JSON",\"sensors\":"`./sensors.sh`
-JSON=$JSON",\"netconfig\":"`/usr/bin/rikcgi-net --get`
+JSON=$JSON",\"devices\":"`./devices.sh`
+# JSON=$JSON",\"netconfig\":"`/usr/bin/rikcgi-net --get`
 JSON=$JSON"}"
 
 echo $JSON
-
-#DONE:
-#sensors
-#fantach
-#voltage
 
 #JSON="{"
 #for key in "sysinfo" "power" "sensors" "devices" "fantach" "voltage" "netconfig" "fanmode" "datetime"
