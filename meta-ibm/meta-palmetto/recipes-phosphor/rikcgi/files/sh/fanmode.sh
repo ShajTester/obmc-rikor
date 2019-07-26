@@ -36,7 +36,7 @@ if [[ $SIZE == $DEFSIZE ]]; then
 	FAN7V=$(( (255 * $FAN7) / 100 ))
 	FAN8V=$(( (255 * $FAN8) / 100 ))
 
-    	killall autofan.sh
+   	killall autofan.sh
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN1 0
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN2 1
 	#/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh $FAN3 2
@@ -64,4 +64,4 @@ else
 	#echo "AutoMODE"
 fi
 
-cat fanpost.json
+./fanset.sh

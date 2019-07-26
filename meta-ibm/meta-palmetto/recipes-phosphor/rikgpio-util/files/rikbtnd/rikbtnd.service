@@ -6,7 +6,7 @@ After=sysinit.target
 Type=forking
 PIDFile=/var/run/rikbtnd.pid
 ExecStartPre=/usr/local/bin/rikgpio
-ExecStart=/usr/local/bin/rikbtnd
+ExecStart=/usr/local/bin/rikbtnd-setup.sh
 
 [Install]
 WantedBy=multi-user.target

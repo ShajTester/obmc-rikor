@@ -45,11 +45,12 @@
 #include <dirent.h>
 
 #include <sys/ioctl.h>
-//#include <linux/gpio.h>
+// #include <linux/gpio.h>
 
 #include <openbmc/gpio.h>
 
 int get_gpio_base();
+int gpio_num(char *str);
 
 pthread_mutex_t web_mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
@@ -59,6 +60,9 @@ int power_command()
 {
 	gpio_st g;
 	g.gs_gpio = gpio_num("GPIOY3") + gpio_base;
+	syslog(LOG_INFO, "gpio_num(\"GPIOY3\") is %d", gpio_num("GPIOY3"));
+	syslog(LOG_INFO, "gpio_base is %d", gpio_base);
+	syslog(LOG_INFO, "GPIOY3 number is %d", g.gs_gpio);
 
 	pthread_mutex_lock(&web_mutex1);
 
@@ -365,4 +369,24 @@ int get_gpio_base()
 
   return gpio_base;
 }
+
+
+
+#define GPIO_BASE_AA0  208
+
+
+int gpio_num(char *str)
+{
+  int len = strlen(str);
+  int ret = 0;
+
+  if (len != 6 && len != 7) {
+    return -1;
+  }
+  ret = str[len-1] - '0' + (8 * (str[len-2] - 'A'));
+  if (len == 7)
+    ret += GPIO_BASE_AA0;
+  return ret;
+}
+
 

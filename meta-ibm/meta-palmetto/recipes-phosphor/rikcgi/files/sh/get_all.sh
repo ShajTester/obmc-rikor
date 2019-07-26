@@ -2,7 +2,7 @@
 
 # FWINFO=$(cat /etc/issue.net | awk 'BEGIN{RS=""; FS=" "} {print "Firmware " $3}' | sed 's/yosemite/rikor/')
 # FWINFO=$FWINFO" build "$(cat /etc/version)
-FWINFO=$(grep VERSION_ID $"/usr/lib/os-release" | awk -F= '{gsub(/"/, ""); print $2}')
+FWINFO=$(grep VERSION_ID $"/usr/lib/os-release" | awk -F= '{gsub(/"/, ""); print $2}')" - "$(cat /etc/timestamp)
 
 HWINFO="Rikor R-BD-ESR-V4-16EA v.5"
 
@@ -10,9 +10,11 @@ JSON="{"
 JSON=$JSON"\"sysinfo\":{\"fwinfo\":\"$FWINFO\",\"hwinfo\":\"$HWINFO\"}"
 JSON=$JSON",\"voltage\":"`./voltage.sh`
 JSON=$JSON",\"fantach\":"`./fantach.sh`
+JSON=$JSON",\"fanmode\":"`./fanset.sh`
 JSON=$JSON",\"sensors\":"`./sensors.sh`
 JSON=$JSON",\"devices\":"`./devices.sh`
 # JSON=$JSON",\"netconfig\":"`/usr/bin/rikcgi-net --get`
+JSON=$JSON",\"datetime\":""{}"
 JSON=$JSON"}"
 
 echo $JSON
