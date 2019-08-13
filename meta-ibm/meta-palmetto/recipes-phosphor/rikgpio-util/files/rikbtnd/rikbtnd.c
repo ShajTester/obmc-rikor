@@ -50,7 +50,7 @@
 #include <openbmc/gpio.h>
 
 int get_gpio_base();
-int gpio_num(char *str);
+int sam_gpio_num(char *str);
 
 pthread_mutex_t web_mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
@@ -59,8 +59,8 @@ int gpio_base = -1;
 int power_command()
 {
 	gpio_st g;
-	g.gs_gpio = gpio_num("GPIOY3") + gpio_base;
-	syslog(LOG_INFO, "gpio_num(\"GPIOY3\") is %d", gpio_num("GPIOY3"));
+	g.gs_gpio = sam_gpio_num("GPIOY3") + gpio_base;
+	syslog(LOG_INFO, "sam_gpio_num(\"GPIOY3\") is %d", sam_gpio_num("GPIOY3"));
 	syslog(LOG_INFO, "gpio_base is %d", gpio_base);
 	syslog(LOG_INFO, "GPIOY3 number is %d", g.gs_gpio);
 
@@ -109,25 +109,25 @@ static void gpio_event_handle(gpio_poll_st *gp)
 	// char cmd[128] = {0};
 	long long tt;
 
-	if (gp->gs.gs_gpio == gpio_num("GPIOD5") + gpio_base)
+	if (gp->gs.gs_gpio == sam_gpio_num("GPIOD5") + gpio_base)
 	{	// Front panel ID button
 		tt = get_nanos();
 		if ((tt - id_last_time) > 600)
 		{
-			if (gpio_get(gpio_num("GPIOD5") + gpio_base) == GPIO_VALUE_LOW)
+			if (gpio_get(sam_gpio_num("GPIOD5") + gpio_base) == GPIO_VALUE_LOW)
 			{
 				syslog(LOG_INFO, "ID button pressed");
-				gpio_set(gpio_num("GPIOD6") + gpio_base, GPIO_VALUE_HIGH);
+				gpio_set(sam_gpio_num("GPIOD6") + gpio_base, GPIO_VALUE_HIGH);
 			}
 		}
 		id_last_time = tt;
 	}
-	else if (gp->gs.gs_gpio == gpio_num("GPIOR7") + gpio_base)
+	else if (gp->gs.gs_gpio == sam_gpio_num("GPIOR7") + gpio_base)
 	{	// Front panel POWER button
 		tt = get_nanos();
 		if ((tt - pwrbtn_last_time) > 600)
 		{
-			if (gpio_get(gpio_num("GPIOR7") + gpio_base) == GPIO_VALUE_LOW)
+			if (gpio_get(sam_gpio_num("GPIOR7") + gpio_base) == GPIO_VALUE_LOW)
 			{
 				syslog(LOG_INFO, "POWER button pressed");
 				power_state ^= true;
@@ -137,7 +137,7 @@ static void gpio_event_handle(gpio_poll_st *gp)
 		}
 		pwrbtn_last_time = tt;
 	}
-	// else if (gp->gs.gs_gpio == gpio_num("GPIOL0") + gpio_base) { // IRQ_UV_DETECT_N
+	// else if (gp->gs.gs_gpio == sam_gpio_num("GPIOL0") + gpio_base) { // IRQ_UV_DETECT_N
 	//   log_gpio_change(gp, 20*1000);
 	// }
 	// long long nanos = get_nanos();
@@ -375,7 +375,7 @@ int get_gpio_base()
 #define GPIO_BASE_AA0  208
 
 
-int gpio_num(char *str)
+int sam_gpio_num(char *str)
 {
   int len = strlen(str);
   int ret = 0;

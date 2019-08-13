@@ -26,6 +26,16 @@
 #include <netpacket/packet.h>
 #include <arpa/inet.h>
 
+
+// Отсюда http://ru.manpages.org/rtnetlink/7
+#include <asm/types.h> 
+#include <linux/netlink.h> 
+#include <linux/rtnetlink.h> 
+// #include <sys/socket.h>
+
+
+
+
 #include "json.hpp"
 
 #include <rikor-fru.h>
@@ -95,19 +105,18 @@ int fill_net_info(json &jout)
 	gethostname(host, NI_MAXHOST);
 	jout["hostname"] = host;
 
-	std::string gwstr;
-	if(GetDefaultGw(gwstr) == 0)
-	{
-		jout["gateway"] = gwstr;
-		jout["dns"] = gwstr;
-	}
+	// std::string gwstr;
+	// if(GetDefaultGw(gwstr) == 0)
+	// {
+	// 	jout["gateway"] = gwstr;
+	// 	jout["dns"] = gwstr;
+	// }
 
 	if (getifaddrs(&ifaddr) == -1) 
 	{
 		syslog(LOG_ERR, "getifaddrs error");
 		return -1;
 	}
-
 	/* Walk through linked list, maintaining head pointer so we can free list later */
 	for (ifa = ifaddr, n = 0; ifa != NULL; ifa = ifa->ifa_next, n++) 
 	{
@@ -158,7 +167,6 @@ int fill_net_info(json &jout)
 	    }
 	}
 	freeifaddrs(ifaddr);
-
 }
 
 
@@ -244,8 +252,8 @@ int main(int argc, char const *argv[])
 			std::string in_login;
 			std::string in_key;
 
-			if(jin.count("login") == 1)     in_login     = jin["login"].get<std::string>();
-			if(jin.count("key") == 1)       in_key       = jin["key"].get<std::string>();
+			if(jin.count("login") == 1) in_login = jin["login"].get<std::string>();
+			if(jin.count("key") == 1)   in_key   = jin["key"].get<std::string>();
 
 			if(key_is_valid(in_login, in_key, false))
 			{
@@ -341,7 +349,10 @@ int main(int argc, char const *argv[])
 				if(s != 0)
 					std::cout << "getnameinfo() failed: " << gai_strerror(s) << std::endl;
 				else
-					std::cout << ifa->ifa_name << "\taddress: <" << host << ">" << std::endl;
+				{
+					std::cout << ifa->ifa_name << "\taddress: <" << host << ">";
+					std::cout << " SIOCGIFFLAGS " << ifa->ifa_flags << std::endl;
+				}
 
 				s = getnameinfo(ifa->ifa_netmask, sizeof(struct sockaddr_in), host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 				if(s != 0)
@@ -367,7 +378,7 @@ int main(int argc, char const *argv[])
 			{
 				struct sockaddr_ll *s = (struct sockaddr_ll*)ifa->ifa_addr;
 				// sockaddr_ll *s = (sockaddr_ll*)ifa->ifa_addr;
-				printf("%-8s ", ifa->ifa_name);
+				printf("%-8sMAC ", ifa->ifa_name);
 				for (int i=0; i < s->sll_halen; i++)
 				{
 					printf("%02x%c", (s->sll_addr[i]), (i+1!=s->sll_halen)?':':'\n');
