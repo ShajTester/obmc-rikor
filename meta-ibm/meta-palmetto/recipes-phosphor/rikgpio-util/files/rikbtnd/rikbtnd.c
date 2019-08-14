@@ -49,19 +49,27 @@
 
 #include <openbmc/gpio.h>
 
-int get_gpio_base();
-int sam_gpio_num(char *str);
 
 pthread_mutex_t web_mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-int gpio_base = -1;
+static void gpio_event_handle(gpio_poll_st *gp);
+
+// GPIO table to be monitored when MB is ON
+static gpio_poll_st g_gpios[] = {
+	// {{gpio, fd}, edge, gpioValue, call-back function, GPIO description}
+	{{0, 0}, GPIO_EDGE_FALLING, 0, gpio_event_handle, "GPIOD5", "FP_ID_BTN" },
+	{{0, 0}, GPIO_EDGE_FALLING, 0, gpio_event_handle, "GPIOR7", "FP_PWR_BTN_MUX_N"},
+	{{0, 0}, GPIO_EDGE_FALLING, 0, gpio_event_handle, "GPIOR6", "FM_BMC_PWR_BTN_N"},
+};
+
+static int g_count = sizeof(g_gpios) / sizeof(gpio_poll_st);
+
+
 
 int power_command()
 {
 	gpio_st g;
-	g.gs_gpio = sam_gpio_num("GPIOY3") + gpio_base;
-	syslog(LOG_INFO, "sam_gpio_num(\"GPIOY3\") is %d", sam_gpio_num("GPIOY3"));
-	syslog(LOG_INFO, "gpio_base is %d", gpio_base);
+	g.gs_gpio = gpio_num("GPIOY3");
 	syslog(LOG_INFO, "GPIOY3 number is %d", g.gs_gpio);
 
 	pthread_mutex_lock(&web_mutex1);
@@ -109,27 +117,28 @@ static void gpio_event_handle(gpio_poll_st *gp)
 	// char cmd[128] = {0};
 	long long tt;
 
-	if (gp->gs.gs_gpio == sam_gpio_num("GPIOD5") + gpio_base)
+	if (gp->gs.gs_gpio == g_gpios[0].gs.gs_gpio)
 	{	// Front panel ID button
 		tt = get_nanos();
 		if ((tt - id_last_time) > 600)
 		{
-			if (gpio_get(sam_gpio_num("GPIOD5") + gpio_base) == GPIO_VALUE_LOW)
+			if (gpio_get(g_gpios[0].gs.gs_gpio) == GPIO_VALUE_LOW)
 			{
 				syslog(LOG_INFO, "ID button pressed");
-				gpio_set(sam_gpio_num("GPIOD6") + gpio_base, GPIO_VALUE_HIGH);
+				gpio_set(gpio_num("GPIOD6"), GPIO_VALUE_HIGH);
 			}
 		}
 		id_last_time = tt;
 	}
-	else if (gp->gs.gs_gpio == sam_gpio_num("GPIOR7") + gpio_base)
+	else if (gp->gs.gs_gpio == g_gpios[1].gs.gs_gpio)
 	{	// Front panel POWER button
 		tt = get_nanos();
 		if ((tt - pwrbtn_last_time) > 600)
 		{
-			if (gpio_get(sam_gpio_num("GPIOR7") + gpio_base) == GPIO_VALUE_LOW)
+			if (gpio_get(g_gpios[1].gs.gs_gpio) == GPIO_VALUE_LOW)
 			{
 				syslog(LOG_INFO, "POWER button pressed");
+				power_command();
 				power_state ^= true;
 				syslog(LOG_INFO, "POWER state is %d", power_state);
 				power_state_store();
@@ -137,7 +146,7 @@ static void gpio_event_handle(gpio_poll_st *gp)
 		}
 		pwrbtn_last_time = tt;
 	}
-	// else if (gp->gs.gs_gpio == sam_gpio_num("GPIOL0") + gpio_base) { // IRQ_UV_DETECT_N
+	// else if (gp->gs.gs_gpio == sam_gpio_num("GPIOL0")) { // IRQ_UV_DETECT_N
 	//   log_gpio_change(gp, 20*1000);
 	// }
 	// long long nanos = get_nanos();
@@ -145,17 +154,6 @@ static void gpio_event_handle(gpio_poll_st *gp)
 	// last_nanos = nanos;
 }
 
-
-
-// GPIO table to be monitored when MB is ON
-static gpio_poll_st g_gpios[] = {
-	// {{gpio, fd}, edge, gpioValue, call-back function, GPIO description}
-	{{0, 0}, GPIO_EDGE_FALLING, 0, gpio_event_handle, "GPIOD5", "FP_ID_BTN" },
-	{{0, 0}, GPIO_EDGE_FALLING, 0, gpio_event_handle, "GPIOR7", "FP_PWR_BTN_MUX_N"},
-	{{0, 0}, GPIO_EDGE_FALLING, 0, gpio_event_handle, "GPIOR6", "FM_BMC_PWR_BTN_N"},
-};
-
-static int g_count = sizeof(g_gpios) / sizeof(gpio_poll_st);
 
 
 void *start_pipe(void *ptr)
@@ -240,11 +238,10 @@ main(int argc, char **argv)
 
 		char tstr[32];
 		sprintf(tstr, "%d", getpid());
-		printf("rikbtnd daemon started. ver 0.4. PID %s", tstr);
 		write(pid_file, tstr, strlen(tstr));
+		printf("rikbtnd daemon started. ver 0.4. PID %s", tstr);
+		syslog(LOG_INFO, "rikbtnd daemon started. ver 0.4. PID %s", tstr);
 
-		gpio_base = get_gpio_base();
-		
 		power_state = get_power_state();
 		if(power_state)
 			power_command();
@@ -257,6 +254,9 @@ main(int argc, char **argv)
 		gpio_poll(g_gpios, g_count, -1);
 		gpio_poll_close(g_gpios, g_count);
 
+		syslog(LOG_ERR, "Buttons closed ...");
+		printf("Buttons closed ...");
+
 		pthread_join(web_thread, NULL);
 	}
 
@@ -265,128 +265,3 @@ main(int argc, char **argv)
 
 	return 0;
 }
-
-
-
-
-
-/**
- * Determine the GPIO base number for the system.  It is found in
- * the 'base' file in the /sys/class/gpio/gpiochipX/ directory where the
- * /sys/class/gpio/gpiochipX/label file has a '1e780000.gpio' in it.
- *
- * Note: This method is ASPEED specific.  Could add support for
- * additional SOCs in the future.
- *
- * @return int - the GPIO base number, or < 0 if not found
- */
-
-#define GPIO_PORT_OFFSET 8
-#define GPIO_BASE_PATH "/sys/class/gpio"
-
-
-int get_gpio_base()
-{
-  int gpio_base = -1;
-
-  DIR* dir = opendir(GPIO_BASE_PATH);
-  if (dir == NULL)
-  {
-    fprintf(stderr, "Unable to open directory %s\n",
-        GPIO_BASE_PATH);
-    return -1;
-  }
-
-  struct dirent* entry;
-  while ((entry = readdir(dir)) != NULL)
-  {
-    /* Look in the gpiochip<X> directories for a file called 'label' */
-    /* that contains '1e780000.gpio', then in that directory read */
-    /* the GPIO base out of the 'base' file. */
-
-    if (strncmp(entry->d_name, "gpiochip", 8) != 0)
-    {
-      continue;
-    }
-
-    //gboolean is_bmc = FALSE;
-    int is_bmc = 0;
-    char* label_name;
-    asprintf(&label_name, "%s/%s/label",
-        GPIO_BASE_PATH, entry->d_name);
-
-    FILE* fd = fopen(label_name, "r");
-    free(label_name);
-
-    if (!fd)
-    {
-      continue;
-    }
-
-    char label[14];
-    if (fgets(label, 14, fd) != NULL)
-    {
-      if (strcmp(label, "1e780000.gpio") == 0)
-      {
-        //is_bmc = TRUE;
-	is_bmc = 1;
-      }
-    }
-    fclose(fd);
-
-    if (!is_bmc)
-    {
-      continue;
-    }
-
-    char* base_name;
-    asprintf(&base_name, "%s/%s/base",
-        GPIO_BASE_PATH, entry->d_name);
-
-    fd = fopen(base_name, "r");
-    free(base_name);
-
-    if (!fd)
-    {
-      continue;
-    }
-
-    if (fscanf(fd, "%d", &gpio_base) != 1)
-    {
-      gpio_base = -1;
-    }
-    fclose(fd);
-
-    /* We found the right file. No need to continue. */
-    break;
-  }
-  closedir(dir);
-
-  if (gpio_base == -1)
-  {
-    fprintf(stderr, "Could not find GPIO base\n");
-  }
-
-  return gpio_base;
-}
-
-
-
-#define GPIO_BASE_AA0  208
-
-
-int sam_gpio_num(char *str)
-{
-  int len = strlen(str);
-  int ret = 0;
-
-  if (len != 6 && len != 7) {
-    return -1;
-  }
-  ret = str[len-1] - '0' + (8 * (str[len-2] - 'A'));
-  if (len == 7)
-    ret += GPIO_BASE_AA0;
-  return ret;
-}
-
-
