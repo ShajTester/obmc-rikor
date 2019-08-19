@@ -1,169 +1,207 @@
+//#include <stdio.h>
+//#include <stdint.h>
+//#include <stdlib.h>
+//#include <string.h>
+//#include <iostream>
+//#include <fstream>
+
+#include <fcntl.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <poll.h>
 #include <string.h>
+#include <ctype.h>
+#include <pthread.h>
 
-//#define LINAPP				//При компиляции для AST2400 эту строку закоментировать
-#define DEFLENGTH	70
+#define DEBUG
 
-char str[DEFLENGTH];
+#define SENSE_RAW_PATH  "/sys/class/i2c-dev/i2c-6/device/6-00%s/hwmon/hwmon%d/temp1_input"
+#define PWM_TACH_PATH "/sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm%d"
 
-unsigned int pwmc[8] = {30, 30, 30, 30, 30, 30, 40 ,40};
-unsigned int curtemp[5];
-char pattern[] = "/usr/local/fbpackages/fan_ctrl/set_fan_speed.sh ";
-char buffer[53];
-//char patnum = " ";
-char pwmval[2];
-char arg[4];
+/************************************************************************************************************************************************************/
+//Primitives
+unsigned int getTemperature(int num);		//get sensor temperature value
+void setPWM(unsigned int coef, int chNum);	//set PWM coefficient
 
-/********************************************************************************************/
-//Примитивы
-int get_num(char *data, int num);			//Преобразование char -массива в int
-											//data - указатель на входную строку
-											//num - номер строки в исходном файле
-void set_coef(int *tempr);					//Расчет
-											//tempr - указатель на входной массив
-									
-/********************************************************************************************/
+/************************************************************************************************************************************************************/
 
-int main()
+static void strip(char *str) {
+  while(*str != '\0') {
+    if (!isalnum(*str)) {
+      *str = '\0';
+      break;
+    }
+    str++;
+  }
+}
+
+/************************************************************************************************************************************************************/
+int main (void)
 {
-	int ctemp = 0;			//текущее значение температуры
-	int str_cnt = 1;
-	FILE *mf;				//буффер для потока		
-	char *estr;
-	int cnt = 0;
-
-	memset(curtemp, 0, sizeof(curtemp));
-
-	#ifdef LINAPP
-	mf = fopen("sensors.txt", "r");
-	#else		//LINAPP
-	//TODO: файл должен быть /www/pages/sensors.log (ну или путь надо будет уточнить)
-	mf = fopen("/www/pages/sensors.log", "r");
-	#endif		//LINAPP
-
-	#ifdef LINAPP
-	if (mf == NULL)
+	unsigned int ctemp4f = 0;
+	unsigned int ctemp4e = 0;
+	unsigned int ctemp4c = 0;
+	unsigned int ctemp49 = 0;
+	unsigned int ctemp4b = 0;
+	
+	unsigned int tmpVal0 = 0;
+	unsigned int tmpVal1 = 0;
+	unsigned int tmpVal2 = 0;
+	
+	ctemp4f = getTemperature(0);
+	ctemp4e = getTemperature(1);
+	ctemp4c = getTemperature(2);
+	ctemp49 = getTemperature(3);
+	ctemp4b = getTemperature(4);
+	
+	tmpVal0 = (ctemp4f+ctemp4e+ctemp4c)/3;
+	tmpVal1 = ctemp49;
+	tmpVal2 = ctemp4b;
+	
+	if (tmpVal0 > 60)
 	{
-		printf("File read error\n");
-		return -1;
+		//Поднять ШИМ на соответствующих каналах ШИМ
+		setPWM(110,0);
 	}
 	else
 	{
-		printf ("File read success\n");
+		setPWM(50,0);
 	}
-	#endif		//LINAPP
-
-	while (feof(mf) == 0)
+	if (tmpVal1 > 60)
 	{
-		//Пока не достигнут конец файла читаем строка за строкой
-		fgets(str, sizeof(str), mf);
-
-		if (str_cnt == 27 || str_cnt == 31 || str_cnt == 35 || str_cnt == 39 || str_cnt == 43)
-		{
-			#ifdef LINAPP
-			//Просто тестовая печать интересующих строк
-			printf("%s\n", str);
-			#endif
-
-			ctemp = get_num(str, str_cnt);
-
-			#ifdef LINAPP
-			//Просто тестовая печать интересующих строк
-			printf("%d\n", (short)ctemp);
-			#endif
-
-			curtemp[cnt] = ctemp;
-			cnt++;
-
-		}
-
-		str_cnt++;
+		//Поднять ШИМ на соответствующих каналах ШИМ
+		setPWM(110,1);
 	}
-
-	//Пересчет ШИМ
-	set_coef(curtemp);
-
-	//Установка значений
-	for (int i=0; i<8; i++)
+	else
 	{
-		memset(buffer, 0, sizeof(buffer));
-		memset(arg, 0, sizeof(arg));
-		strcpy(buffer, pattern);
-		char dt[3];
-		char dn[2];
-		char blank[2] = {" "};
-		unsigned int pwmb1 = pwmc[i];
-		unsigned int pwmb2 = pwmc[i]/10;
-		dt[0] = (pwmb2 % 10) + '0';
-		dt[1] = (pwmb1 % 10) + '0';
-		dt[2] = '\0';
-		dn[0] = (i % 10) + '0';
-		dn[1] = '\0';
-		strcat(arg, dt);
-		strcat(blank, dn);
-		strcat(arg, blank);
-		strcpy(buffer, pattern);
-		strcat(buffer, arg);
-		#ifdef LINAPP
-		printf("%s\n", buffer);
-		#endif
-		system(buffer);
+		setPWM(50,1);
 	}
-
-	#ifdef LINAPP
-	printf("File read complete\n");
-	#endif		//LINAPP
-	fclose(mf);
+	if (tmpVal2 > 60)
+	{
+		//Поднять ШИМ на соответствующих каналах ШИМ
+		setPWM(110,2);
+	}
+	else
+	{
+		setPWM(50,2);
+	}
 	return 0;
 }
 
-/********************************************************************************************/
-int get_num(char *data, int num)
+/************************************************************************************************************************************************************/
+unsigned int getTemperature(int num)
 {
-    int res = 0;
-	char buf[2];		//буфер для хранения текущей температуры в массиве char
-	if (num != 43)
+	char buf[128] = {0};
+  	int fd = -1;
+	unsigned int val = 25;
+
+	//Считать цифру с датчика, перевести в int, отнормировать и вернуть в main
+	switch (num)
 	{
-		buf[0] = data[16];
-		buf[1] = data[17];
+		case 0:
+			//Check 4f
+			//snprintf(tVal, SENSE_RAW_PATH, "4f", 5);
+			snprintf(buf, sizeof(buf), SENSE_RAW_PATH, "4f", 5);
+			fd = open(buf, O_RDONLY);
+			read(fd, buf, sizeof(buf));
+  			strip(buf);
+			close (fd);
+			val = atoi(buf);
+			val = val / 1000;
+			break;
+		case 1:
+			//Check 4e
+			//snprintf(tVal, SENSE_RAW_PATH, "4e", 2);
+			snprintf(buf, sizeof(buf), SENSE_RAW_PATH, "4e", 2);
+			fd = open(buf, O_RDONLY);
+			read(fd, buf, sizeof(buf));
+  			strip(buf);
+			close (fd);
+			val = atoi(buf);
+			val = val / 1000;
+			break;
+		case 2:
+			//Check 4c
+			//snprintf(tVal, SENSE_RAW_PATH, "4c", 3);
+			snprintf(buf, sizeof(buf), SENSE_RAW_PATH, "4c", 3);
+			fd = open(buf, O_RDONLY);
+			read(fd, buf, sizeof(buf));
+  			strip(buf);
+			close (fd);
+			val = atoi(buf);
+			val = val / 1000;
+			break;
+		case 3:
+			//Check 49
+			//snprintf(tVal, SENSE_RAW_PATH, "49", 1);
+			snprintf(buf, sizeof(buf), SENSE_RAW_PATH, "49", 1);
+			fd = open(buf, O_RDONLY);
+			read(fd, buf, sizeof(buf));
+  			strip(buf);
+			close (fd);
+			val = atoi(buf);
+			val = val / 1000;
+			break;
+		case 4:
+			//Check 4b
+			//snprintf(tVal, SENSE_RAW_PATH, "4b", 4);
+			snprintf(buf, sizeof(buf), SENSE_RAW_PATH, "4b", 4);
+			fd = open(buf, O_RDONLY);
+			read(fd, buf, sizeof(buf));
+  			strip(buf);
+			close (fd);
+			val = atoi(buf);
+			val = val / 1000;
+			break;
+		default:
+			break;
 	}
-	else
-	{
-		buf[0] = data[19];
-		buf[1] = data[20];
-	}
-	res = atoi(buf);
-	return res;
+	
+	#ifdef DEBUG
+	printf ("DEBUG_rikfans_%d: %d\n", (int)num, (unsigned int)val);
+	#endif		//DEBUG
+	
+	return val;
 }
 
-/********************************************************************************************/
-void set_coef(int *tempr)
+/************************************************************************************************************************************************************/
+void setPWM(unsigned int coef, int chNum)
 {
-	unsigned int dbuf = (tempr[3]+tempr[4])/2;
-	unsigned int pwmbuf = dbuf*40/20;
-	if (pwmbuf > 99) pwmbuf = 99;
-	pwmc[6] = pwmbuf;
-	pwmc[7] = pwmbuf;
-
-	#ifdef LINAPP
-	printf ("DEBUG1: %d\n", (unsigned int)pwmbuf);
-	#endif		//LINAPP
-
-	dbuf = (tempr[0]+tempr[1]+tempr[2])/3;
-	pwmbuf = dbuf*30/20;
-	if (pwmbuf > 99) pwmbuf = 99;
-
-	pwmc[0] = pwmbuf;
-	pwmc[1] = pwmbuf;
-	pwmc[2] = pwmbuf;
-	pwmc[3] = pwmbuf;
-	pwmc[4] = pwmbuf;
-	pwmc[5] = pwmbuf;
-
-	#ifdef LINAPP
-	printf ("DEBUG2: %d\n", (unsigned int)pwmbuf);
-	#endif		//LINAPP
+	char *c;
+	char buf[128];
+  	int fd = -1;
+	
+	if (coef == 110) c = "110";
+	else c = "50";
+	
+	switch (chNum)
+	{
+		case 0:
+			for (int i=1; i<4 ;i++)
+			{
+				snprintf(buf, sizeof(buf), PWM_TACH_PATH, i);
+  				fd = open(buf, O_WRONLY);
+  				write(fd, c, strlen(c));
+				close(fd);	
+  			}
+			break;
+		case 1:
+				snprintf(buf, sizeof(buf), PWM_TACH_PATH, 5);
+  				fd = open(buf, O_WRONLY);
+  				write(fd, c, strlen(c));
+				close(fd);	
+			break;
+		case 2:
+				snprintf(buf, sizeof(buf), PWM_TACH_PATH, 6);
+  				fd = open(buf, O_WRONLY);
+  				write(fd, c, strlen(c));
+				close(fd);	
+			break;
+		default:
+			break;
+	}
 }
+
+
 

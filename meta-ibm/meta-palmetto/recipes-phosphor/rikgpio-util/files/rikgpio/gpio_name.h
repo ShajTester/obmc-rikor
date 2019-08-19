@@ -88,7 +88,7 @@
 #define FP_LED_STATUS_GREEN_DIR         1
 
 #define FM_PS_PWROK_DIR                 0
-#define FM_BMC_FLASH_WP_DIR             1
+#define FM_BMC_FLASH_WP_DIR             0
 #define FM_BIOS_POST_CMPL_DIR           0
 #define IRQ_SML0_ALERT_N_DIR            0
 #define FM_SMI_ACTIVE_DIR               0

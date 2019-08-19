@@ -21,7 +21,7 @@ DESCRIPTION = "Util for multiplexing terminal"
 SECTION = "base"
 PR = "r1"
 LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://Makefile;md5=80ea8c99cc27f5b41e7eccf0818c43f9"
+LIC_FILES_CHKSUM = "file://Makefile;md5=a6d84732d6fb37ff918ffbadd67cf63e"
 
 SRC_URI = "file://rikfans.c \
            file://Makefile \

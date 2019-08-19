@@ -15,11 +15,25 @@
 # 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301 USA
 
-binary: rikfans.o 
-	$(CC) -o rikfans rikfans.o  
+#binary: rikfans.o 
+#	$(CC) -o rikfans rikfans.o  
+#
+#rikfans.o: rikfans.c
+#	$(CC) -c -I rikfans.c
+#
+#clean:
+#	rm -f *.o binary
 
-rikfans.o: rikfans.c
-	$(CC) -c -I /home/tohas/fbook_openbmc/openBMC_rev2/openbmc/common/recipes-core/rikfans/files rikfans.c
+
+all: rikfans
+
+CFLAGS += -Wall -Werror
+
+rikfans: rikfans.c
+	$(CC) $(CFLAGS) -D _XOPEN_SOURCE -pthread -std=c99 -o $@ $^ $(LDFLAGS) 
+#	$(CC) $(CFLAGS) -D _XOPEN_SOURCE -pthread -lgpio -std=c99 -o $@ $^ $(LDFLAGS)
+
+.PHONY: clean
 
 clean:
-	rm -f *.o binary
+	rm -rf *.o rikfans
