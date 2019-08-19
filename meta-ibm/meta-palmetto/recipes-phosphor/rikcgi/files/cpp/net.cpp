@@ -304,6 +304,69 @@ int main(int argc, char const *argv[])
 				syslog(LOG_ERR, "Invaid key");
 			}
 		}
+		else if(std::strcmp(argv[1], "--indata") == 0)
+		{
+		    std::string str;
+		    std::getline(std::cin, str);
+			json jin;
+
+			try
+			{
+				jin = json::parse(str);
+			}
+			catch (std::exception& e)
+			{
+				syslog(LOG_ERR, "exception: %s", e.what());
+			}
+
+			syslog(LOG_INFO, " ~~~ IN %s", jin.dump().c_str());
+
+			std::string in_login;
+			std::string in_key;
+
+			if(jin.count("login") == 1) in_login = jin["login"].get<std::string>();
+			if(jin.count("key") == 1)   in_key   = jin["key"].get<std::string>();
+
+			if(key_is_valid(in_login, in_key, false))
+			{
+				if(jin.count("hostname") > 0)
+				{
+					std::cout << jin["hostname"].get<std::string>();
+				}
+				if(jin.count("dhcp") > 0)
+				{
+					std::cout << " " << jin["dhcp"].get<std::string>();
+				}
+				if(jin.count("addr") > 0)
+				{
+					std::cout << " " << jin["addr"].get<std::string>();
+				}
+				if(jin.count("mask") > 0)
+				{
+					in_addr_t netmaskv4 = inet_addr(jin["mask"].get<std::string>().c_str());
+					syslog(LOG_INFO, "netmask v4 0x%8x", netmaskv4);
+					netmaskv4 = (netmaskv4 << 24) | ((netmaskv4 << 8) & 0xff0000) | ((netmaskv4 >> 8) & 0xff00) | ((netmaskv4 >> 24) & 0xff);
+					syslog(LOG_INFO, "netmask v4 0x%8x", netmaskv4);
+					int netmaskcnt = 0;
+					
+					while(netmaskv4 & 0x80000000)
+					{
+						netmaskcnt++;
+						netmaskv4 = netmaskv4 << 1;
+					}
+					std::cout << " " << netmaskcnt;
+				}
+				if(jin.count("gateway") > 0)
+				{
+					std::cout << " " << jin["gateway"].get<std::string>();
+				}
+				// if(jin.count("dns") > 0)
+				// {
+				// 	inet_aton(jin["dns"].get<std::string>().c_str(), &fru_data.dns1_1);
+				// }
+			}
+			std::cout << std::endl;
+		}
 		else
 		{ // --get
 			if((argc > 1) && (std::strcmp(argv[1], "--get") == 0))
