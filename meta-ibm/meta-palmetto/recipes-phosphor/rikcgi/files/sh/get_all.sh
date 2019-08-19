@@ -13,7 +13,7 @@ JSON=$JSON",\"fantach\":"`./fantach.sh`
 JSON=$JSON",\"fanmode\":"`./fanset.sh`
 JSON=$JSON",\"sensors\":"`./sensors.sh`
 JSON=$JSON",\"devices\":"`./devices.sh`
-JSON=$JSON",\"netconfig\":"`/usr/bin/rikcgi-net --get`
+JSON=$JSON",\"netconfig\":"`./netprint.sh`
 JSON=$JSON",\"datetime\":""{}"
 JSON=$JSON"}"
 

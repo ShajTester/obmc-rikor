@@ -1,53 +1,38 @@
 #!/bin/sh
 
-exec /usr/bin/rikcgi-net --store
+
+# Команда '/usr/bin/rikcgi-net --indata'
+# проверяет ключ сессии и преобразует
+# входной JSON в последовательность значений
+LOGCGI=$(/usr/bin/rikcgi-net --indata)
+logger $LOGCGI
+read -a Q <<< $LOGCGI
+logger ${Q[1]}
+
+# Q[0] - hostname
+# Q[1] - dhcp
+# Q[2] - ipv4
+# Q[3] - mask
+# Q[4] - gate
 
 
-# POST url:netconfig.sh data:
-#     {
-#         "hostname":"",
-#         "dhcp":"no",
-#         "addr":"192.168.0.123",
-#         "mask":"255.255.0.0",
-#         "gateway":"192.168.0.1",
-#         "dns":"",
-#         "ip6_addr":"",
-#         "ip6_com":"add",
-#         "ip6_auto_conf":"on",
-#         "ip6_dhcp":"stateless"
-#     }
+### busctl call  xyz.openbmc_project.Network /xyz/openbmc_project/network/eth0 xyz.openbmc_project.Network.IP.Create IP ssys "xyz.openbmc_project.Network.IP.Protocol.IPv4" "10.10.0.222" 24 "10.10.0.1"
 
 
-# echo "" > /www/pages/lognet.json
-
-# if [ "$REQUEST_METHOD" = "POST" ]; then
-#     if [ "$CONTENT_LENGTH" -gt 0 ]; then
-#         while read -n $CONTENT_LENGTH POST_DATA <&0
-#         do
-#             echo "$POST_DATA" >> /www/pages/lognet.json
-#         done
-#     fi
-# fi
-
-# read -a Q <<< `cat lognet.json | sed -E 's/[{}\"]//g;s/,/ /g'`
-
-# HOSTNAME=`echo "${Q[0]}"|cut -d : -f 2`
-# DHCP=`echo "${Q[1]}"|cut -d : -f 2`
-# DHCPDEF=no
-
-# if [ "$DHCP" = "$DHCPDEF" ]
-# then
-#     ADDR=`echo "${Q[2]}"|cut -d : -f 2`
-#     MASK=`echo "${Q[3]}"|cut -d : -f 2`
-#     GATE=`echo "${Q[4]}"|cut -d : -f 2`
-# else
-#     ADDR=192.168.0.100
-#     MASK=255.255.255.0
-#     GATE=192.168.0.1
-# fi
-
-# #DEBUG only - TODO - replace with eeprom write utility
-# #echo "$HOSTNAME $DHCP $ADDR $MASK $GATE" > /www/pages/netconfig.log
-# echo "$HOSTNAME $DHCP $ADDR $MASK $GATE" > /sys/devices/platform/ast-i2c.3/i2c-3/3-0050/eeprom
-# #or
-# #echo "$HOSTNAME $DHCP $ADDR $MASK $GATE" > /sys/devices/platform/ast-i2c.3/i2c-3/3-0052/eeprom
+QSIZE=${#Q[@]}
+if [[ $QSIZE -gt 1 ]]; then
+	busctl set-property xyz.openbmc_project.Network /xyz/openbmc_project/network/config xyz.openbmc_project.Network.SystemConfiguration HostName s "${Q[0]}"
+	if [[ "${Q[1]}" == "yes" ]]; then
+		busctl set-property xyz.openbmc_project.Network /xyz/openbmc_project/network/eth0 xyz.openbmc_project.Network.EthernetInterface DHCPEnabled b 1
+	else
+		busctl set-property xyz.openbmc_project.Network /xyz/openbmc_project/network/eth0 xyz.openbmc_project.Network.EthernetInterface DHCPEnabled b 0
+		busctl call  xyz.openbmc_project.Network /xyz/openbmc_project/network/eth0 xyz.openbmc_project.Network.IP.Create IP ssys \
+			"xyz.openbmc_project.Network.IP.Protocol.IPv4" \
+			"${Q[2]}" \
+			${Q[3]} \
+			"${Q[4]}" \
+			|| logger "Error add IPv4"
+	fi
+	sleep 10
+	systemctl restart systemd-networkd.service
+fi
