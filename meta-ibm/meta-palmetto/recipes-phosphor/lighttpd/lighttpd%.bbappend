@@ -24,6 +24,7 @@ do_install_append() {
 	install -d $dst_jsnbd
 
 	install -m 0644 ${WORKDIR}/js/bmc.js ${dst_js}	
+	install -m 0644 ${WORKDIR}/js/jsnbd.js ${dst_js}	
 	install -m 777 ${WORKDIR}/css/bmc.css ${dst_css}
 	install -m 0644 ${WORKDIR}/img/* ${dst_img}
 	install -m 0644 ${WORKDIR}/jsnbd/* ${dst_jsnbd}
