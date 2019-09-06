@@ -1,5 +1,7 @@
 
 OBMC_IMAGE_EXTRA_INSTALL_append_palmetto = " mboxd"
+IMAGE_INSTALL_append = " bmcweb"
+IMAGE_INSTALL_append = " phosphor-webui"
 
 IMAGE_INSTALL += "libgpio"
 # IMAGE_INSTALL += "liblog"

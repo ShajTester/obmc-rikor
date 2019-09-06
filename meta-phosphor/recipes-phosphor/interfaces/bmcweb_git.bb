@@ -16,6 +16,7 @@ SRC_URI = "git://github.com/openbmc/bmcweb.git"
 
 PV = "1.0+git${SRCPV}"
 SRCREV = "57bff08a75362a05d36354918195c5b7c82006f1"
+#SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
