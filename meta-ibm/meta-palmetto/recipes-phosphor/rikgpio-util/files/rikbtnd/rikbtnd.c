@@ -138,6 +138,7 @@ static void gpio_event_handle(gpio_poll_st *gp)
 			if (gpio_get(g_gpios[1].gs.gs_gpio) == GPIO_VALUE_LOW)
 			{
 				syslog(LOG_INFO, "POWER button pressed");
+				gpio_set(gpio_num("GPIOQ7"), GPIO_VALUE_HIGH);
 				power_command();
 				power_state ^= true;
 				syslog(LOG_INFO, "POWER state is %d", power_state);
