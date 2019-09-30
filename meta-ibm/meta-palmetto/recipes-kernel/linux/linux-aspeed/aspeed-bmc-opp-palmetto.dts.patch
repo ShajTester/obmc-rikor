@@ -1,5 +1,7 @@
 diff --git a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
-index 2f2cb0e..f7a9b8c 100644
+old mode 100644
+new mode 100755
+index 2f2cb0e..ccf4184
 --- a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 +++ b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 @@ -14,7 +14,7 @@
@@ -35,8 +37,7 @@ index 2f2cb0e..f7a9b8c 100644
 -			reg = <0x5C000000 0x02000000>; /* 32MB */
 +			reg = <0x4C000000 0x02000000>; /* 32MB */
  		};
--	};
- 
++
 +		gfx_memory: framebuffer@4b000000 {
 +			reg = <0x4b000000 0x01000000>;
 +		};
@@ -59,11 +60,12 @@ index 2f2cb0e..f7a9b8c 100644
 +		// 	compatible = "shared-dma-pool";
 +		// 	reusable;
 +		// };
-+	};
-+/*
+ 	};
+ 
  	leds {
  		compatible = "gpio-leds";
- 
+-
++		/*
  		heartbeat {
 -			gpios = <&gpio ASPEED_GPIO(R, 4) GPIO_ACTIVE_LOW>;
 +			gpios = <&gpio ASPEED_GPIO(D, 5) GPIO_ACTIVE_LOW>;
@@ -73,19 +75,19 @@ index 2f2cb0e..f7a9b8c 100644
 -			gpios = <&gpio ASPEED_GPIO(R, 5) GPIO_ACTIVE_LOW>;
 +			gpios = <&gpio ASPEED_GPIO(D, 4) GPIO_ACTIVE_LOW>;
  		};
- 
+-
++		*/
  		identify {
 -			gpios = <&gpio ASPEED_GPIO(A, 2) GPIO_ACTIVE_LOW>;
-+			gpios = <&gpio ASPEED_GPIO(R, 4) GPIO_ACTIVE_LOW>;
++			gpios = <&gpio ASPEED_GPIO(D, 6) GPIO_ACTIVE_LOW>;
  		};
  	};
--
-+*/
+ 
 +/*
  	fsi: gpio-fsi {
  		compatible = "aspeed,ast2400-cf-fsi-master", "fsi-master";
  		#address-cells = <2>;
-@@ -69,16 +93,18 @@
+@@ -69,16 +93,23 @@
  		enable-gpios = <&gpio ASPEED_GPIO(D, 0) GPIO_ACTIVE_HIGH>;
  		trans-gpios = <&gpio ASPEED_GPIO(H, 6) GPIO_ACTIVE_HIGH>;
  	};
@@ -108,10 +110,11 @@ index 2f2cb0e..f7a9b8c 100644
 +		compatible = "iio-hwmon";
 +		io-channels = <&adc 0>, <&adc 1>, <&adc 2>, <&adc 3>, <&adc 4>, <&adc 5>, <&adc 6>, <&adc 7>, <&adc 8>, <&adc 9>, <&adc 10>, <&adc 11>, <&adc 12>, <&adc 13>, <&adc 14>, <&adc 15>;
 +	};
++	
  };
  
  &fmc {
-@@ -92,6 +118,10 @@
+@@ -92,6 +123,10 @@
  	};
  };
  
@@ -122,7 +125,7 @@ index 2f2cb0e..f7a9b8c 100644
  &spi {
  	status = "okay";
  	pinctrl-names = "default";
-@@ -141,78 +171,417 @@
+@@ -141,78 +176,417 @@
  	pinctrl-0 = <&pinctrl_rmii1_default>;
  };
  
@@ -135,19 +138,19 @@ index 2f2cb0e..f7a9b8c 100644
 +};
 +
 +&video {
-+	status = "okay";
-+	memory-region = <&video_engine_memory>;
-+};
-+
-+
-+&adc {
  	status = "okay";
++	memory-region = <&video_engine_memory>;
 +};
  
 -	eeprom@50 {
 -		compatible = "atmel,24c256";
 -		reg = <0x50>;
 -		pagesize = <64>;
++
++&adc {
++	status = "okay";
++};
++
 +&pwm_tacho {
 +	status = "okay";
 +	pinctrl-names = "default";
@@ -189,20 +192,20 @@ index 2f2cb0e..f7a9b8c 100644
 +	fan@6 {
 +		reg = <0x06>;
 +		aspeed,fan-tach-ch = /bits/ 8 <0x06>;
- 	};
++	};
 +	fan@7 {
 +		reg = <0x07>;
 +		aspeed,fan-tach-ch = /bits/ 8 <0x07>;
-+	};
-+};
-+
+ 	};
+ };
+ 
 +
 +
 +&i2c0 {
 +	status = "okay";
 +	//status = "disabled";
- };
- 
++};
++
  &i2c1 {
  	status = "okay";
 +	//status = "disabled";
@@ -561,7 +564,7 @@ index 2f2cb0e..f7a9b8c 100644
  	pin_func_mode0 {
  		gpio-hog;
  		gpios = <ASPEED_GPIO(C, 4) GPIO_ACTIVE_HIGH>;
-@@ -352,8 +721,9 @@
+@@ -352,8 +726,9 @@
  		output-high;
  		line-name = "BMC_TPM_INT_N";
  	};
@@ -572,70 +575,8 @@ index 2f2cb0e..f7a9b8c 100644
  &fsi {
  	cfam@0,0 {
  		reg = <0 0>;
-@@ -375,3 +745,4 @@
+@@ -375,3 +750,4 @@
  		};
  	};
  };
 +*/
-diff --git a/arch/arm/boot/dts/aspeed-g4.dtsi b/arch/arm/boot/dts/aspeed-g4.dtsi
-index 6011692..6544c37 100644
---- a/arch/arm/boot/dts/aspeed-g4.dtsi
-+++ b/arch/arm/boot/dts/aspeed-g4.dtsi
-@@ -181,6 +181,16 @@
- 				quality = <100>;
- 			};
- 
-+			gfx: display@1e6e6000 {
-+				compatible = "aspeed,ast2400-gfx", "syscon";
-+				reg = <0x1e6e6000 0x1000>;
-+				reg-io-width = <4>;
-+				clocks = <&syscon ASPEED_CLK_GATE_D1CLK>;
-+				resets = <&syscon ASPEED_RESET_CRT1>;
-+				status = "disabled";
-+				interrupts = <0x19>;
-+			};
-+
- 			adc: adc@1e6e9000 {
- 				compatible = "aspeed,ast2400-adc";
- 				reg = <0x1e6e9000 0xb0>;
-@@ -190,6 +200,16 @@
- 				status = "disabled";
- 			};
- 
-+			video: video@1e700000 {
-+				compatible = "aspeed,ast2400-video-engine";
-+				reg = <0x1e700000 0x1000>;
-+				clocks = <&syscon ASPEED_CLK_GATE_VCLK>,
-+					 <&syscon ASPEED_CLK_GATE_ECLK>;
-+				clock-names = "vclk", "eclk";
-+				interrupts = <7>;
-+				status = "disabled";
-+			};
-+
- 			sram: sram@1e720000 {
- 				compatible = "mmio-sram";
- 				reg = <0x1e720000 0x8000>;	// 32K
-diff --git a/drivers/media/platform/aspeed-video.c b/drivers/media/platform/aspeed-video.c
-index 1bb863b..b783f18 100644
---- a/drivers/media/platform/aspeed-video.c
-+++ b/drivers/media/platform/aspeed-video.c
-@@ -748,6 +748,10 @@ static void aspeed_video_get_resolution(struct aspeed_video *video)
- 					    VE_MAX_SRC_BUFFER_SIZE)) {
- 			dev_err(video->dev,
- 				"Failed to allocate source buffers\n");
-+			dev_err(video->dev, "srcs[0].size %d; srcs[0].dma %d, srcs[0].virt 0x%p\n", 
-+				video->srcs[0].size,
-+				video->srcs[0].dma,
-+				video->srcs[0].virt);
- 			return;
- 		}
- 	}
-@@ -897,7 +901,7 @@ static void aspeed_video_set_resolution(struct aspeed_video *video)
- 	return;
- 
- err_mem:
--	dev_err(video->dev, "Failed to allocate source buffers\n");
-+	dev_err(video->dev, "Failed to allocate source buffers (set_resolution)\n");
- 
- 	if (video->srcs[0].size)
- 		aspeed_video_free_buf(video, &video->srcs[0]);
