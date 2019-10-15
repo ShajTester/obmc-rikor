@@ -1,7 +1,7 @@
 diff --git a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 old mode 100644
 new mode 100755
-index 2f2cb0e..ccf4184
+index 2f2cb0e..af48f47
 --- a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 +++ b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 @@ -14,7 +14,7 @@
@@ -13,7 +13,7 @@ index 2f2cb0e..ccf4184
  	};
  
  	reserved-memory {
-@@ -22,38 +22,62 @@
+@@ -22,38 +22,58 @@
  		#size-cells = <1>;
  		ranges;
  
@@ -38,21 +38,17 @@ index 2f2cb0e..ccf4184
 +			reg = <0x4C000000 0x02000000>; /* 32MB */
  		};
 +
-+		gfx_memory: framebuffer@4b000000 {
-+			reg = <0x4b000000 0x01000000>;
-+		};
-+
 +		video_engine_memory: jpegbuffer@49000000 {
 +			reg = <0x49000000 0x02000000>; 
 +		};
 +
 +
-+		// gfx_memory: framebuffer {
-+		// 	size = <0x01000000>;
-+		// 	alignment = <0x01000000>;
-+		// 	compatible = "shared-dma-pool";
-+		// 	reusable;
-+		// };
++		gfx_memory: framebuffer {
++			size = <0x01000000>;
++			alignment = <0x01000000>;
++			compatible = "shared-dma-pool";
++			reusable;
++		};
 +
 +		// video_engine_memory: jpegbuffer {
 +		// 	size = <0x02000000>;	/* 32M */
@@ -87,7 +83,7 @@ index 2f2cb0e..ccf4184
  	fsi: gpio-fsi {
  		compatible = "aspeed,ast2400-cf-fsi-master", "fsi-master";
  		#address-cells = <2>;
-@@ -69,16 +93,23 @@
+@@ -69,16 +89,23 @@
  		enable-gpios = <&gpio ASPEED_GPIO(D, 0) GPIO_ACTIVE_HIGH>;
  		trans-gpios = <&gpio ASPEED_GPIO(H, 6) GPIO_ACTIVE_HIGH>;
  	};
@@ -114,7 +110,7 @@ index 2f2cb0e..ccf4184
  };
  
  &fmc {
-@@ -92,6 +123,10 @@
+@@ -92,6 +119,10 @@
  	};
  };
  
@@ -125,7 +121,7 @@ index 2f2cb0e..ccf4184
  &spi {
  	status = "okay";
  	pinctrl-names = "default";
-@@ -141,78 +176,417 @@
+@@ -141,78 +172,417 @@
  	pinctrl-0 = <&pinctrl_rmii1_default>;
  };
  
@@ -564,7 +560,7 @@ index 2f2cb0e..ccf4184
  	pin_func_mode0 {
  		gpio-hog;
  		gpios = <ASPEED_GPIO(C, 4) GPIO_ACTIVE_HIGH>;
-@@ -352,8 +726,9 @@
+@@ -352,8 +722,9 @@
  		output-high;
  		line-name = "BMC_TPM_INT_N";
  	};
@@ -575,7 +571,7 @@ index 2f2cb0e..ccf4184
  &fsi {
  	cfam@0,0 {
  		reg = <0 0>;
-@@ -375,3 +750,4 @@
+@@ -375,3 +746,4 @@
  		};
  	};
  };
