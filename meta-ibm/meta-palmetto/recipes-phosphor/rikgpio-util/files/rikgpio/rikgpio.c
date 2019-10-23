@@ -95,7 +95,7 @@ int main(void)
   gpio_set_value(1, gpio_num(RST_BMC_RSTBTN_OUT_N) + gpio_base);
   gpio_set_value(1, gpio_num(FP_RST_BTN_N) + gpio_base);
   gpio_set_value(1, gpio_num(FP_ID_LED) + gpio_base);
-  gpio_set_value(0, gpio_num(FP_LED_STATUS_AMBER) + gpio_base);
+  gpio_set_value(1, gpio_num(FP_LED_STATUS_AMBER) + gpio_base);
   gpio_set_value(1, gpio_num(FP_LED_STATUS_GREEN) + gpio_base);
   
   gpio_set_value(0, gpio_num(FM_BMC_FLASH_WP) + gpio_base);

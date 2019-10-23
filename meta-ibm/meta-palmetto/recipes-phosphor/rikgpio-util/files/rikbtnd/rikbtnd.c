@@ -65,10 +65,23 @@ static gpio_poll_st g_gpios[] = {
 static int g_count = sizeof(g_gpios) / sizeof(gpio_poll_st);
 
 
+bool power_state;
+
+
+bool get_power_state()
+{
+	return false;
+}
+
+int power_state_store()
+{
+	return 0;
+}
 
 int power_command()
 {
 	gpio_st g;
+	char blink_cmd[81];
 	g.gs_gpio = gpio_num("GPIOY3");
 	syslog(LOG_INFO, "GPIOY3 number is %d", g.gs_gpio);
 
@@ -79,24 +92,21 @@ int power_command()
 	gpio_set(g.gs_gpio, GPIO_VALUE_LOW);
 	gpio_change_direction(&g, GPIO_DIRECTION_IN);
 
+	power_state ^= true;
+	power_state_store();
+
+	if(power_state) 
+	{
+		sprintf(blink_cmd, "/usr/bin/ledblink-1.0 %d 10 &", gpio_num("GPIOQ7"));
+		syslog(LOG_INFO, blink_cmd);
+		system(blink_cmd);             
+	}
+
 	pthread_mutex_unlock(&web_mutex1);
 	return 0;
 }
 
 
-bool power_state;
-
-bool get_power_state()
-{
-
-	return false;
-}
-
-int power_state_store()
-{
-
-	return 0;
-}
 
 // Отсюда
 // https://stackoverflow.com/a/36095407
@@ -138,11 +148,9 @@ static void gpio_event_handle(gpio_poll_st *gp)
 			if (gpio_get(g_gpios[1].gs.gs_gpio) == GPIO_VALUE_LOW)
 			{
 				syslog(LOG_INFO, "POWER button pressed");
-				gpio_set(gpio_num("GPIOQ7"), GPIO_VALUE_HIGH);
+				// gpio_set(gpio_num("GPIOQ7"), GPIO_VALUE_HIGH);
 				power_command();
-				power_state ^= true;
 				syslog(LOG_INFO, "POWER state is %d", power_state);
-				power_state_store();
 			}
 		}
 		pwrbtn_last_time = tt;
@@ -153,6 +161,14 @@ static void gpio_event_handle(gpio_poll_st *gp)
 	// long long nanos = get_nanos();
 	// syslog(LOG_CRIT, "delta %10lld value %d: %s - %s\n", nanos - last_nanos, gp->value, gp->name, gp->desc);
 	// last_nanos = nanos;
+}
+
+
+
+void *flasher_timer(void *ptr)
+{
+	while(1)
+	{}
 }
 
 
@@ -190,7 +206,6 @@ void *start_pipe(void *ptr)
 			if(strcmp(str1, "switch power"))
 			{
 				power_command();
-				power_state ^= true;
 				syslog(LOG_INFO, "POWER state is %d", power_state);
 				power_state_store();
 			}
@@ -219,7 +234,8 @@ main(int argc, char **argv)
 	int rc;
 	int pid_file;
 
-	pthread_t web_thread;
+	pthread_t cmd_thread;
+	pthread_t tim_thread;
 
 	openlog("rikbtnd", LOG_CONS, LOG_DAEMON);
 
@@ -243,13 +259,21 @@ main(int argc, char **argv)
 		printf("rikbtnd daemon started. ver 0.4. PID %s", tstr);
 		syslog(LOG_INFO, "rikbtnd daemon started. ver 0.4. PID %s", tstr);
 
+		sleep(10);
+
+		gpio_set(gpio_num("GPIOQ7"), GPIO_VALUE_LOW);
+
 		power_state = get_power_state();
 		if(power_state)
 			power_command();
 
-		rc = pthread_create(&web_thread, NULL, start_pipe, NULL);
+		rc = pthread_create(&cmd_thread, NULL, start_pipe, NULL);
 		if (rc)
-			syslog(LOG_ERR, "pthread_create error.");
+			syslog(LOG_ERR, "cmd_thread pthread_create error.");
+
+		rc = pthread_create(&tim_thread, NULL, flasher_timer, NULL);
+		if (rc)
+			syslog(LOG_ERR, "tim_thread pthread_create error.");
 
 		gpio_poll_open(g_gpios, g_count);
 		gpio_poll(g_gpios, g_count, -1);
@@ -258,11 +282,12 @@ main(int argc, char **argv)
 		syslog(LOG_ERR, "Buttons closed ...");
 		printf("Buttons closed ...");
 
-		pthread_join(web_thread, NULL);
+		pthread_join(tim_thread, NULL);
+		pthread_join(cmd_thread, NULL);
 	}
 
 	unlink(pidfilename);
-    flock(pid_file, LOCK_UN);
+	flock(pid_file, LOCK_UN);
 
 	return 0;
 }
