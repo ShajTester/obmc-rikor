@@ -18,12 +18,12 @@
     "gpio_definitions": [
         {
             "name": "POWER_PIN",
-            "pin": "Y3",
+            "pin": "E1",
             "direction": "out"
         },
         {
             "name": "PGOOD",
-            "pin": "E6",
+            "pin": "C7",
             "direction": "in"
         },
         {
