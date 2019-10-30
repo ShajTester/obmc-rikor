@@ -1,7 +1,7 @@
 diff --git a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 old mode 100644
 new mode 100755
-index 2f2cb0e..af48f47
+index 2f2cb0e..d14eb1e
 --- a/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 +++ b/arch/arm/boot/dts/aspeed-bmc-opp-palmetto.dts
 @@ -14,7 +14,7 @@
@@ -61,18 +61,18 @@ index 2f2cb0e..af48f47
  	leds {
  		compatible = "gpio-leds";
 -
-+		/*
++/*		
  		heartbeat {
 -			gpios = <&gpio ASPEED_GPIO(R, 4) GPIO_ACTIVE_LOW>;
-+			gpios = <&gpio ASPEED_GPIO(D, 5) GPIO_ACTIVE_LOW>;
++			gpios = <&gpio ASPEED_GPIO(Q, 7) GPIO_ACTIVE_LOW>;
  		};
  
  		power {
 -			gpios = <&gpio ASPEED_GPIO(R, 5) GPIO_ACTIVE_LOW>;
-+			gpios = <&gpio ASPEED_GPIO(D, 4) GPIO_ACTIVE_LOW>;
++			gpios = <&gpio ASPEED_GPIO(Q, 4) GPIO_ACTIVE_LOW>;
  		};
 -
-+		*/
++*/		
  		identify {
 -			gpios = <&gpio ASPEED_GPIO(A, 2) GPIO_ACTIVE_LOW>;
 +			gpios = <&gpio ASPEED_GPIO(D, 6) GPIO_ACTIVE_LOW>;
@@ -121,7 +121,7 @@ index 2f2cb0e..af48f47
  &spi {
  	status = "okay";
  	pinctrl-names = "default";
-@@ -141,78 +172,417 @@
+@@ -141,78 +172,423 @@
  	pinctrl-0 = <&pinctrl_rmii1_default>;
  };
  
@@ -183,7 +183,7 @@ index 2f2cb0e..af48f47
 +	fan@5 {
 +		reg = <0x05>;
 +		aspeed,fan-tach-ch = /bits/ 8 <0x05>;
-+	};
+ 	};
 +
 +	fan@6 {
 +		reg = <0x06>;
@@ -192,16 +192,15 @@ index 2f2cb0e..af48f47
 +	fan@7 {
 +		reg = <0x07>;
 +		aspeed,fan-tach-ch = /bits/ 8 <0x07>;
- 	};
- };
- 
++	};
++};
 +
 +
 +&i2c0 {
 +	status = "okay";
 +	//status = "disabled";
-+};
-+
+ };
+ 
  &i2c1 {
  	status = "okay";
 +	//status = "disabled";
@@ -209,16 +208,15 @@ index 2f2cb0e..af48f47
  
  &i2c2 {
  	status = "okay";
-+	//status = "disabled";
- 
+-
 -	tmp423@4c {
 -		compatible = "ti,tmp423";
 -		reg = <0x4c>;
 -	};
++	//status = "disabled";
  };
  
  &i2c3 {
-+	
  	status = "okay";
 +/*
 +	eeprom@56 {
@@ -250,7 +248,6 @@ index 2f2cb0e..af48f47
  };
  
  &i2c6 {
-+		
  	status = "okay";
 +
 +	lm75@49 {
@@ -273,13 +270,22 @@ index 2f2cb0e..af48f47
 +		compatible = "ti,tmp421";
 +		reg = <0x4f>;
 +	};
-+	
-+	//status = "disabled";
  };
  
  &i2c7 {
--	status = "okay";
-+	status = "disabled";
+ 	status = "okay";
++	pmbus@25 {
++		compatible = "pmbus";
++		reg = <0x25>;
++	};
++	pmbus@58 {
++		compatible = "pmbus";
++		reg = <0x58>;
++	};
++	pmbus@59 {
++		compatible = "pmbus";
++		reg = <0x59>;
++	};
  };
  
  &vuart {
@@ -560,7 +566,7 @@ index 2f2cb0e..af48f47
  	pin_func_mode0 {
  		gpio-hog;
  		gpios = <ASPEED_GPIO(C, 4) GPIO_ACTIVE_HIGH>;
-@@ -352,8 +722,9 @@
+@@ -352,8 +728,9 @@
  		output-high;
  		line-name = "BMC_TPM_INT_N";
  	};
@@ -571,7 +577,7 @@ index 2f2cb0e..af48f47
  &fsi {
  	cfam@0,0 {
  		reg = <0 0>;
-@@ -375,3 +746,4 @@
+@@ -375,3 +752,4 @@
  		};
  	};
  };
