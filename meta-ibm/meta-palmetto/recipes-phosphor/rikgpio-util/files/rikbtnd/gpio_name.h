@@ -98,7 +98,7 @@
 #define FP_PWR_BTN_MUX_N_DIR            0
 #define FM_BMC_PWR_BTN_N_DIR            1   
 #define RST_BMC_RSTBTN_OUT_N_DIR        1   
-#define FP_RST_BTN_N_DIR                1
+#define FP_RST_BTN_N_DIR                0
 
 //For openpower/openbmc directions
 #define SGPIO_DIN_DIR                   0
