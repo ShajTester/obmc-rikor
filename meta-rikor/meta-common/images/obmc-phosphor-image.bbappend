@@ -1,0 +1,19 @@
+# IMAGE_INSTALL_append = " bmcweb"
+# IMAGE_INSTALL_append = " phosphor-webui"
+# IMAGE_INSTALL_append = " phosphor-inventory-manager"
+# IMAGE_INSTALL_append = " phosphor-hwmon"
+# IMAGE_INSTALL_append = " obmc-console"
+# IMAGE_INSTALL_append = " obmc-control-chassis"
+
+# IMAGE_INSTALL += "libgpio"
+# IMAGE_INSTALL += "liblog"
+# IMAGE_INSTALL += "lighttpd"
+# IMAGE_INSTALL += "rikcgi"
+# IMAGE_INSTALL += "rikgpio"
+# IMAGE_INSTALL += "rikbtnd"
+# IMAGE_INSTALL += "rikcgi"
+# IMAGE_INSTALL += "rikcgi-login"
+# IMAGE_INSTALL += "rikor-fru"
+# IMAGE_INSTALL += "rikfans"
+
+
