@@ -12,7 +12,7 @@ function get_speed
   if [[ $exit_status -ne 0 ]]; then
   	echo "absent"
   else
-  	echo "$RETVAL rpm"
+  	echo "$RETVAL"
   fi
 }
 
@@ -31,7 +31,7 @@ fi
 
 read -a Q <<< `cat fanpost.json|sed -E 's/[{}\"]//g;s/,/ /g'`
 
-AUTODEF="on"
+AUTODEF=on
 AUTOMODE=`echo "${Q[8]}" | cut -d : -f 2`
 
 KEY=`echo "${Q[9]}" | cut -d : -f 2`
@@ -48,15 +48,14 @@ if [[ $AUTODEF == $AUTOMODE ]]; then
 	TACH7=`get_speed 7` || exit 2
 	TACH8=`get_speed 8` || exit 2
 
-	FAN1="UNKNOWN"
-	FAN2="UNKNOWN"
-	FAN3="UNKNOWN"
-	FAN4="UNKNOWN"
-	FAN5="UNKNOWN"
-	FAN6="UNKNOWN"
-	FAN7="UNKNOWN"
-	FAN8="UNKNOWN"
-	echo "ON" >> /www/pages/log__.txt
+	FAN1=UNKNOWN
+	FAN2=UNKNOWN
+	FAN3=UNKNOWN
+	FAN4=UNKNOWN
+	FAN5=UNKNOWN
+	FAN6=UNKNOWN
+	FAN7=UNKNOWN
+	FAN8=UNKNOWN
 else
 	killall autofan.sh
 	
@@ -87,8 +86,6 @@ else
 	echo $FAN7V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm7
 	echo $FAN8V > /sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm8
 
-	sleep 5s
-
 	TACH1=`get_speed 1` || exit 2
 	TACH2=`get_speed 2` || exit 2
 	TACH3=`get_speed 3` || exit 2
@@ -97,11 +94,10 @@ else
 	TACH6=`get_speed 6` || exit 2
 	TACH7=`get_speed 7` || exit 2
 	TACH8=`get_speed 8` || exit 2
-	echo "OFF" >> /www/pages/log__.txt
 fi
 
-STR="{\"fantach\":[[\"Fan1\",\"$TACH1\",\"$FAN1\"],[\"Fan2\",\"$TACH2\",\"$FAN2\"],[\"Fan3\",\"$TACH3\",\"$FAN3\"],[\"Fan4\",\"$TACH4\",\"$FAN4\"],[\"Fan5\",\"$TACH5\",\"$FAN5\"],[\"Fan6\",\"$TACH6\",\"$FAN6\"],[\"Fan7\",\"$TACH7\",\"$FAN7\"],[\"Fan8\",\"$TACH8\",\"$FAN8\"]],\"fanauto\":\"$AUTOMODE\",\"key\":\"$KEY\",\"lifetime\":\"$LTIME\"}"
+STR="\"fantach\":[[\"Fan1\",\"$TACH1\",\"$FAN1\"],[\"Fan2\",\"$TACH2\",\"$FAN2\"],[\"Fan3\",\"$TACH3\",\"$FAN3\"],[\"Fan4\",\"$TACH4\",\"$FAN4\"],[\"Fan5\",\"$TACH5\",\"$FAN5\"],[\"Fan6\",\"$TACH6\",\"$FAN6\"],[\"Fan7\",\"$TACH7\",\"$FAN7\"],[\"Fan8\",\"$TACH8\",\"$FAN8\"]],\"fanauto\":\"$AUTOMODE\",\"key\":\"$KEY\",\"lifetime\":\"$LTIME\""
 
-echo $STR
+#echo $STR
 
-#echo "${STR}" >> /www/pages/STR.json
+echo "${STR}" >> /www/pages/STR.json
