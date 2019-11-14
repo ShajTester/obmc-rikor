@@ -35,9 +35,9 @@ target_link_libraries(${PROJECT_NAME}-net
 
 # add_library (rikor-fru SHARED IMPORTED)
 
-add_executable(${PROJECT_NAME}-voltagesensors rikvoltagesensors.cpp)
+add_executable(${PROJECT_NAME}-pchplus pch.cpp smbus.c)
 
-set_target_properties(${PROJECT_NAME}-voltagesensors PROPERTIES
+set_target_properties(${PROJECT_NAME}-pchplus PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED ON
   COMPILE_OPTIONS -Wpedantic -Wall -Wextra
@@ -45,9 +45,24 @@ set_target_properties(${PROJECT_NAME}-voltagesensors PROPERTIES
 
 
 
-install (TARGETS ${PROJECT_NAME}-login          RUNTIME DESTINATION bin)
-install (TARGETS ${PROJECT_NAME}-net            RUNTIME DESTINATION bin)
-install (TARGETS ${PROJECT_NAME}-voltagesensors RUNTIME DESTINATION bin)
+
+add_executable(${PROJECT_NAME}-pch pch.c smbus.c)
+
+set_target_properties(${PROJECT_NAME}-pch PROPERTIES
+  COMPILE_OPTIONS -Wpedantic -Wall -Wextra
+)
+
+target_link_libraries(${PROJECT_NAME}-pch
+  fastjson
+)
+
+
+
+
+install (TARGETS ${PROJECT_NAME}-login   RUNTIME DESTINATION bin)
+install (TARGETS ${PROJECT_NAME}-net     RUNTIME DESTINATION bin)
+install (TARGETS ${PROJECT_NAME}-pchplus RUNTIME DESTINATION bin)
+install (TARGETS ${PROJECT_NAME}-pch     RUNTIME DESTINATION bin)
 
 # install (FILES ${PROJECT_BINARY_DIR}/dscan.conf DESTINATION /etc/dscan COMPONENT config)
 
