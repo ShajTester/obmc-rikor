@@ -8,7 +8,7 @@ PR = "r1"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=cc4734e8a01f740811ac41130a40cf90"
 
-DEPENDS += "rikor-fru"
+DEPENDS += "rikor-fru i2c-tools libfastjson"
 RDEPENDS_${PN} += "libstdc++ rikor-fru"
 
 SRCREV = "${AUTOREV}"
