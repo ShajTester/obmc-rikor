@@ -1,23 +1,3 @@
-/*
- * sensord
- *
- * Copyright 2015-present Facebook. All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- */
-
 
 #define _GNU_SOURCE
 
@@ -66,7 +46,8 @@ static gpio_poll_st g_gpios[] = {
 static int g_count = sizeof(g_gpios) / sizeof(gpio_poll_st);
 
 
-bool power_state;
+// bool power_state;
+bool PCH_cmd_flag;
 
 
 bool get_power_state()
@@ -79,32 +60,79 @@ int power_state_store()
 	return 0;
 }
 
+
+#define adc_file_name "/sys/bus/iio/devices/iio:device0/in_voltage0_raw"
+
 int power_command()
 {
 	gpio_st g;
 	char blink_cmd[81];
+	FILE *adc_file;
+	int adc_val;
+	bool power_state;
+
 	g.gs_gpio = gpio_num("GPIOY3");
 	// syslog(LOG_INFO, "GPIOY3 number is %d", g.gs_gpio);
 
 	pthread_mutex_lock(&web_mutex1);
 
-	gpio_change_direction(&g, GPIO_DIRECTION_OUT);
-	gpio_set(g.gs_gpio, GPIO_VALUE_HIGH);
-	// usleep(10000);
-	gpio_set(g.gs_gpio, GPIO_VALUE_LOW);
-	gpio_change_direction(&g, GPIO_DIRECTION_IN);
-
-	power_state ^= true;
-	power_state_store();
-
-	if(power_state) 
+	adc_file = fopen(adc_file_name, "r");
+	if (adc_file)
 	{
+		fgets(blink_cmd, sizeof(blink_cmd), adc_file);
+		fclose(adc_file);
+		adc_val = atoi(blink_cmd);
+	}
+	else adc_val = 0;
+
+	// if(adc_val > 700) power_state = true;
+	// else power_state = false;
+
+	power_state = (adc_val > 700);
+
+	syslog(LOG_INFO, "Power command in power state %d P3V3_BASE raw val %d", power_state, adc_val);
+
+	if (!power_state)
+	{
+		gpio_change_direction(&g, GPIO_DIRECTION_OUT);
+		gpio_set(g.gs_gpio, GPIO_VALUE_HIGH);
+		// usleep(10000);
+		gpio_set(g.gs_gpio, GPIO_VALUE_LOW);
+		gpio_change_direction(&g, GPIO_DIRECTION_IN);
+
 		sprintf(blink_cmd, "/usr/bin/ledblink-1.0 %d 10 &", gpio_num("GPIOQ7"));
 		// syslog(LOG_INFO, blink_cmd);
-		system(blink_cmd);             
+		system(blink_cmd);
 	}
 
 	pthread_mutex_unlock(&web_mutex1);
+	return 0;
+}
+
+int PCH_command()
+{
+	gpio_st g;
+	g.gs_gpio = gpio_num("GPIOD3");
+
+	syslog(LOG_INFO, "PCH command");
+
+	// Поскольку сигналы D3 и R7 внешне связаны,
+	// нужно заблокировать срабатывание прерывания по R7
+
+	PCH_cmd_flag = true;
+
+	pthread_mutex_lock(&web_mutex1);
+
+	gpio_change_direction(&g, GPIO_DIRECTION_OUT);
+	gpio_set(g.gs_gpio, GPIO_VALUE_LOW);
+	usleep(100000);
+	gpio_set(g.gs_gpio, GPIO_VALUE_HIGH);
+	gpio_change_direction(&g, GPIO_DIRECTION_IN);
+
+	pthread_mutex_unlock(&web_mutex1);
+
+	PCH_cmd_flag = false;
+
 	return 0;
 }
 
@@ -160,18 +188,19 @@ static void gpio_event_handle(gpio_poll_st *gp)
 	}
 	else if (gp->gs.gs_gpio == g_gpios[1].gs.gs_gpio)
 	{	// Front panel POWER button
-		tt = get_nanos();
-		if ((tt - pwrbtn_last_time) > 600)
-		{
-			if (gpio_get(g_gpios[1].gs.gs_gpio) == GPIO_VALUE_LOW)
+		if (!PCH_cmd_flag)
+		{	// Нет подачи сигнала на PCH
+			tt = get_nanos();
+			if ((tt - pwrbtn_last_time) > 600)
 			{
-				syslog(LOG_INFO, "POWER button pressed");
-				// gpio_set(gpio_num("GPIOQ7"), GPIO_VALUE_HIGH);
-				power_command();
-				syslog(LOG_INFO, "POWER state is %d", power_state);
+				if (gpio_get(g_gpios[1].gs.gs_gpio) == GPIO_VALUE_LOW)
+				{
+					syslog(LOG_INFO, "POWER button pressed");
+					power_command();
+				}
 			}
+			pwrbtn_last_time = tt;
 		}
-		pwrbtn_last_time = tt;
 	}
 	else if (gp->gs.gs_gpio == g_gpios[3].gs.gs_gpio)
 	{	// Front panel POWER button
@@ -186,22 +215,7 @@ static void gpio_event_handle(gpio_poll_st *gp)
 		}
 		rstbtn_last_time = tt;
 	}
-	// else if (gp->gs.gs_gpio == sam_gpio_num("GPIOL0")) { // IRQ_UV_DETECT_N
-	//   log_gpio_change(gp, 20*1000);
-	// }
-	// long long nanos = get_nanos();
-	// syslog(LOG_CRIT, "delta %10lld value %d: %s - %s\n", nanos - last_nanos, gp->value, gp->name, gp->desc);
-	// last_nanos = nanos;
 }
-
-
-
-// void *flasher_timer(void *ptr)
-// {
-// 	while(1)
-// 	{}
-// }
-
 
 
 void *start_pipe(void *ptr)
@@ -223,34 +237,33 @@ void *start_pipe(void *ptr)
 		// First open in read only and read
 		fd1 = open(myfifo, O_RDONLY);
 		rc = read(fd1, str1, 80);
-		if(rc == -1)
+		if (rc == -1)
 		{
 			syslog(LOG_ERR, "Read pipe error");
 		}
-		else if(rc == 0)
+		else if (rc == 0)
 		{
 		}
 		else
 		{
 			str1[rc] = 0;
 			syslog(LOG_INFO, "Read string from pipe: %s", str1);
-			if(strcmp(str1, "switch power"))
+			if (strcmp(str1, "switch power"))
 			{
 				power_command();
-				syslog(LOG_INFO, "POWER state is %d", power_state);
-				power_state_store();
+				PCH_command();
 			}
 		}
 		close(fd1);
 
 		// Now open in write mode and write
 		// string taken from user.
-		fd1 = open(myfifo,O_WRONLY);
-		if(power_state)
-			write(fd1, "on\0", 3);
-		else
-			write(fd1, "off\0", 4);
-		close(fd1);
+		// fd1 = open(myfifo,O_WRONLY);
+		// if(power_state)
+		// 	write(fd1, "on\0", 3);
+		// else
+		// 	write(fd1, "off\0", 4);
+		// close(fd1);
 	}
 
 	unlink(myfifo);
@@ -259,8 +272,7 @@ void *start_pipe(void *ptr)
 
 static const char pidfilename[] = "/var/run/rikbtnd.pid";
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	int rc;
 	int pid_file;
@@ -272,31 +284,32 @@ main(int argc, char **argv)
 
 	pid_file = open(pidfilename, O_CREAT | O_RDWR, 0666);
 	rc = flock(pid_file, LOCK_EX | LOCK_NB);
-	if (rc) 
+	if (rc)
 	{
-		if (EWOULDBLOCK == errno) 
+		if (EWOULDBLOCK == errno)
 		{
 			syslog(LOG_ERR, "Another rikbtnd instance is running...");
 			exit(-1);
 		}
-	} 
-	else 
+	}
+	else
 	{
 		daemon(0, 1);
 
 		char tstr[32];
 		sprintf(tstr, "%d", getpid());
 		write(pid_file, tstr, strlen(tstr));
-		printf("rikbtnd daemon started. ver 0.4. PID %s", tstr);
-		syslog(LOG_INFO, "rikbtnd daemon started. ver 0.4. PID %s", tstr);
+		syslog(LOG_INFO, "rikbtnd daemon started. ver 0.5. PID %s", tstr);
 
 		sleep(10);
 
 		gpio_set(gpio_num("GPIOQ7"), GPIO_VALUE_LOW);
 
-		power_state = get_power_state();
-		if(power_state)
-			power_command();
+		PCH_cmd_flag = false;
+
+		// power_state = get_power_state();
+		// if(power_state)
+		// 	power_command();
 
 		rc = pthread_create(&cmd_thread, NULL, start_pipe, NULL);
 		if (rc)
@@ -310,11 +323,10 @@ main(int argc, char **argv)
 		gpio_poll(g_gpios, g_count, -1);
 		gpio_poll_close(g_gpios, g_count);
 
-		syslog(LOG_ERR, "Buttons closed ...");
-		printf("Buttons closed ...");
-
 		// pthread_join(tim_thread, NULL);
 		pthread_join(cmd_thread, NULL);
+
+		syslog(LOG_ERR, "rikbtnd closed ...");
 	}
 
 	unlink(pidfilename);
