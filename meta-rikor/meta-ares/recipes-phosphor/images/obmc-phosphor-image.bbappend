@@ -1,4 +1,4 @@
-OBMC_IMAGE_EXTRA_INSTALL_append_palmetto = " mboxd"
+OBMC_IMAGE_EXTRA_INSTALL_append_ares = " mboxd"
 IMAGE_INSTALL_append = " bmcweb"
 IMAGE_INSTALL_append = " phosphor-webui"
 IMAGE_INSTALL_append = " phosphor-hwmon"
