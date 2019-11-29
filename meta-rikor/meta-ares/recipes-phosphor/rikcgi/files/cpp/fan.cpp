@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <exception>
 #include <string>
-#include <set>
+#include <vector>
 
 #include <cmath>
 #include <cstdio>
@@ -88,6 +88,25 @@ bool key_is_valid(std::string &l, const std::string &k, bool delete_key)
 #define FanFileFmt  "/sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/fan%d_input"
 
 
+struct FANDescr
+{
+	std::string name;
+	std::string webname;
+	int tach;
+	int pwm;
+};
+
+const std::vector<FANDescr> fanDescr {
+	{"Fan 1", "fan1", 1, 1},
+	{"Fan 2", "fan2", 2, 2},
+	{"Fan 3", "fan3", 3, 3},
+	{"Fan 4", "fan4", 4, 4},
+	{"Fan 5", "fan5", 5, 8},
+	{"Fan 6", "fan6", 7, 6},
+	{"CPU 0", "fan7", 6, 7},
+	{"CPU 1", "fan8", 8, 5}
+};
+
 int rawPWM(std::string perc)
 {
 	int readVal;
@@ -124,14 +143,13 @@ int fillState(json &jdata)
 	char fname[256];
 
 	jdata["fantach"] = json::array();
-	for (int i = 1; i < 9; i++)
+	for (const auto &it: fanDescr)
 	{
 		pFT = json::array();
-		std::sprintf(fname, "Fan %d", i);
-		pFT += fname;
+		pFT += it.name;
 
 		readVal = 0;
-		std::sprintf(fname, FanFileFmt, i);
+		std::sprintf(fname, FanFileFmt, it.tach);
 		ifd.open(fname);
 		if (ifd.is_open())
 		{
@@ -147,7 +165,7 @@ int fillState(json &jdata)
 		pFT += percFAN(readVal);
 
 		readVal = 0;
-		std::sprintf(fname, PWMFileFmt, i);
+		std::sprintf(fname, PWMFileFmt, it.pwm);
 		ifd.open(fname);
 		if (ifd.is_open())
 		{
@@ -259,12 +277,13 @@ int main(int argc, char const *argv[])
 
 				if (key_is_valid(in_login, in_key, false))
 				{
+					int num;
 					json newPwm;
 					// Изменение задания в ручном режиме
-					for (int i = 1; i < 9; i++)
+					for(const auto &it: fanDescr)
 					{
 						// Чтение текущих значений PWM
-						std::sprintf(cstr, PWMFileFmt, i);
+						std::sprintf(cstr, PWMFileFmt, it.pwm);
 						fd.open(cstr, std::ios::in);
 						if (fd.is_open())
 						{
@@ -278,16 +297,15 @@ int main(int argc, char const *argv[])
 							readVal = nomPWMraw;
 						}
 
-						std::sprintf(cstr, "fan%d", i);
-						if (jin.count(cstr) > 0)
+						if (jin.count(it.webname) > 0)
 						{
-							readVal = rawPWM(jin[cstr].get<std::string>());
+							readVal = rawPWM(jin[it.webname].get<std::string>());
 						}
 
 						if (readVal < minPWMraw)
 							readVal = minPWMraw;
 
-						std::sprintf(cstr, PWMFileFmt, i);
+						std::sprintf(cstr, PWMFileFmt, it.pwm);
 						fd.open(cstr, std::ios::out);
 
 						if (fd.is_open())
@@ -304,7 +322,7 @@ int main(int argc, char const *argv[])
 							syslog(LOG_ERR, "Error %d open file <%s>", errno, cstr);
 						}
 
-						newPwm["pwm" + std::to_string(i)] = readVal;
+						newPwm["pwm" + std::to_string(it.pwm)] = readVal;
 					} // for
 
 					std::ofstream confout {CONFIG_FILE_NAME};
