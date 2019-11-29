@@ -32,6 +32,19 @@ target_link_libraries(${PROJECT_NAME}-net
 	rikor-fru
 )
 
+add_executable(${PROJECT_NAME}-fan fan.cpp)
+
+set_target_properties(${PROJECT_NAME}-fan PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+  COMPILE_OPTIONS -Wpedantic -Wall -Wextra
+)
+
+target_link_libraries(${PROJECT_NAME}-fan
+  # rikor-fru
+  stdc++fs
+)
+
 
 # add_library (rikor-fru SHARED IMPORTED)
 
@@ -53,6 +66,7 @@ target_link_libraries(${PROJECT_NAME}-pch
 install (TARGETS ${PROJECT_NAME}-login   RUNTIME DESTINATION bin)
 install (TARGETS ${PROJECT_NAME}-net     RUNTIME DESTINATION bin)
 install (TARGETS ${PROJECT_NAME}-pch     RUNTIME DESTINATION bin)
+install (TARGETS ${PROJECT_NAME}-fan     RUNTIME DESTINATION bin)
 
 # install (FILES ${PROJECT_BINARY_DIR}/dscan.conf DESTINATION /etc/dscan COMPONENT config)
 
