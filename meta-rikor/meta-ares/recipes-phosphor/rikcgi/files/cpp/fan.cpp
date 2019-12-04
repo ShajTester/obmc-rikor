@@ -101,10 +101,10 @@ const std::vector<FANDescr> fanDescr {
 	{"Fan 2", "fan2", 2, 2},
 	{"Fan 3", "fan3", 3, 3},
 	{"Fan 4", "fan4", 4, 4},
-	{"Fan 5", "fan5", 5, 8},
+	{"Fan 5", "fan5", 8, 5},
 	{"Fan 6", "fan6", 7, 6},
 	{"CPU 0", "fan7", 6, 7},
-	{"CPU 1", "fan8", 8, 5}
+	{"CPU 1", "fan8", 5, 8}
 };
 
 int rawPWM(std::string perc)
