@@ -37,10 +37,14 @@ do_install() {
 
   install -d ${D}${systemd_system_unitdir}
   install -m 755 rikbtnd.service ${D}${systemd_system_unitdir}/rikbtnd.service
+
+  install -d ${D}${ROOT_HOME}
+  install -m 644 .profile ${D}${ROOT_HOME}/.profile
 }
 
 FILES_${PN} = "${prefix}/local/bin"
 FILES_${PN} += "${systemd_system_unitdir}"
+FILES_${PN} += "${ROOT_HOME}"
 
 RDEPENDS_${PN} = "glibc libgpio"
 
