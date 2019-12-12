@@ -182,10 +182,10 @@ int main(int argc, char const *argv[])
 	openlog("rikfan", LOG_CONS, LOG_USER);
 
 	fs::path conf_fname = "/etc/rikfan/conf.json";
-	if(!fs::exist(conf_fname)
+	if(!fs::exists(conf_fname))
 	{
 		conf_fname = "/tmp/rikfan/conf.json";
-		if(!fs::exist(conf_fname))
+		if(!fs::exists(conf_fname))
 		{
 			syslog(LOG_ERR, "Need config file in '/etc/rikfan/conf.json' or '/tmp/rikfan/conf.json'");
 			std::cerr << "Need config file in '/etc/rikfan/conf.json' or '/tmp/rikfan/conf.json'";
