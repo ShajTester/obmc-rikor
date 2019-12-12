@@ -1,0 +1,185 @@
+
+
+
+#include <string>
+#include <fstream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
+#include <cmath>
+
+#include <vector>
+#include <functional>
+
+
+#include "ec/pid.hpp"
+// #include "util.hpp"
+
+
+
+std::mutex              g_lock;
+std::condition_variable g_signal;
+bool                    g_done;
+
+
+
+
+class Timer
+{
+public:
+	Timer() {}
+
+	void add(std::chrono::milliseconds delay,
+	         std::function<void ()> callback,
+	         bool asynchronous = true)
+	{
+		if (asynchronous)
+		{
+			std::thread([ = ]()
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+				callback();
+			}).detach();
+		}
+		else
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+			callback();
+		}
+	}
+
+};
+
+
+
+
+
+class Zone
+{
+private:
+	static const constexpr auto loop_delay = std::chrono::milliseconds(500);
+
+public:
+
+	Zone() = delete;
+	Zone(std::vector<std::string> &s,
+	     std::vector<std::string> &f,
+	     std::shared_ptr<Timer> &t): sensors(s), pwms(f), timer(t)
+	{
+
+	}
+
+	~Zone() {}
+
+	void start()
+	{
+		manualmode = false;
+		initialized = false;
+		timer->add(loop_delay, control_loop, true);
+	}
+
+	void stop()
+	{
+		manualmode = true;
+	}
+
+
+private:
+	bool manualmode;
+	bool initialized;
+	std::vector<std::string> sensors;
+	std::vector<std::string> pwms;
+	std::shared_ptr<Timer> timer;
+
+
+	double processInputs()
+	{
+		std::ifstream ifs;
+		int retval = 0;
+		for (const auto &str : sensors)
+		{
+			int val = 100;
+			ifs.open(str);
+			if (ifs.is_open())
+			{
+				ifs >> val;
+				if (!ifs.good())
+				{
+					val = 100;
+				}
+				ifs.close();
+			}
+			retval = std::max(retval, val);
+		}
+		return static_cast<double>(retval);
+	}
+
+	double processPID(double in)
+	{
+
+	}
+
+	void processOutputs(double in)
+	{
+		std::ofstream ofs;
+		int val = static_cast<int>(std::round(in * 2.55));
+		for (const auto &str : pwms)
+		{
+			ofs.open(str);
+			if (ofs.is_open())
+			{
+				ofs << val;
+				ofs.close();
+			}
+		}
+	}
+
+};
+
+
+void zone_control_loop(std::shared_ptr<Zone> zone)
+{
+	if (zone->manualmode)
+	{
+		zone->initialized = false;
+		return;
+	}
+	if (!zone->initialized)
+	{
+
+	}
+
+	auto input = zone->processInputs();
+	auto output = zone->processPID(input);
+	zone->processOutputs(output);
+
+	timer->add(loop_delay, control_loop, true);
+}
+
+
+
+
+int main(int argc, char const *argv[])
+{
+	Timer t;
+
+	Zone zone1 {std::vector<std::string>(),};
+	Zone zone2 {};
+
+	// TODO:
+	// Основной цикл должен обрабатывать внешние события.
+	// Такие как:
+	//    * включение - запуск управления вентиляторами;
+	//    * отключение
+	//    * переход в ручное управление.
+
+	zone1.start();
+	zone2.start();
+
+
+	std::unique_lock<std::mutex> lock(g_lock);
+	g_signal.wait(lock);
+
+	return 0;
+}

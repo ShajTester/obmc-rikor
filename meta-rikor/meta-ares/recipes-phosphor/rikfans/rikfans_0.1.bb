@@ -16,31 +16,26 @@
 # Boston, MA 02110-1301 USA
 #
 
-SUMMARY = "Terminal Multiplexer"
-DESCRIPTION = "Util for multiplexing terminal"
+SUMMARY = "Fan control"
+DESCRIPTION = "Fan control service by Rikor"
 SECTION = "base"
 PR = "r1"
-LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://Makefile;md5=a6d84732d6fb37ff918ffbadd67cf63e"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=838c366f69b72c5df05c96dff79b35f2"
 
-SRC_URI = "file://rikfans.c \
-           file://Makefile \
-          "
+SRC_URI = "file://*"
+SRCREV = "${AUTOREV}"
+
+DEPENDS += "systemd nlohmann-json"
 
 S = "${WORKDIR}"
 
-pkgdir = "rikfans"
+inherit cmake systemd
 
-do_install() {
-  dst="${D}/usr/local/fbpackages/${pkgdir}"
-  bin="${D}/usr/local/bin"
-  install -d $dst
-  install -d $bin
-  install -m 755 rikfans ${dst}/rikfans
-  ln -snf ../fbpackages/${pkgdir}/rikfans ${bin}/rikfans
-}
+EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=MinSizeRel"
 
-FBPACKAGEDIR = "${prefix}/local/fbpackages"
+FILES_${PN} += "/etc/rikfan"
+SYSTEMD_SERVICE_${PN} += "rikfan.service"
 
-FILES_${PN} = "${FBPACKAGEDIR}/rikfans ${prefix}/local/bin"
+
 

@@ -1,0 +1,125 @@
+{
+	"description": {
+		"name"      : "Название зоны. Д.б. без пробелов. Д.б. уникальным",
+		"type"      : "Способ обработки 'inputs'. Пока не используется",
+		"inputs"    : "Массив путей к датчикам hwmon",
+		"fans_pwm"  : "Массив путей к регистрам ШИМ нужных вентиляторов",
+		"setpoint"  : "Задание на ПИД",
+		"pid"       : "Параметры ПИД",
+        "pid-param" : {
+            "samplePeriod"       : "Время между вызовами регулятора (сек)",
+            "proportionalCoeff"  : "Пропорциональный коэффициент",
+            "integralCoeff"      : "Интегральный коэффициент",
+            "feedFwdOffsetCoeff" : "Дополнительный коэффициент относительно задания",
+            "feedFwdGainCoeff"   : "Дополнительный коэффициент относительно задания",
+            "integralLimit_min"  : "Ограничение интегральной компоненты",
+            "integralLimit_max"  : "Ограничение интегральной компоненты",
+            "outLim_min"         : "Ограничение выходного значения",
+            "outLim_max"         : "Ограничение выходного значения",
+            "slewNeg"            : "Задатчик интенсивности на снижение выходного сигнала",
+            "slewPos"            : "Задатчик интенсивности на повышение выходного сигнала"
+        }
+	},
+    "zones": [
+        {
+            "name": "chassis0",
+            "type": "margin",
+            "inputs": [
+                "/tmp/rikfan/s1"
+            ],
+            "fans_pwm": [
+                "/tmp/rikfan/p1"
+            ],
+            "setpoint": 10,
+            "pid": {
+                "samplePeriod": 1,
+                "proportionalCoeff": -4.25,
+                "integralCoeff": -0.01,
+                "feedFwdOffsetCoeff": 0.0,
+                "feedFwdGainCoeff": 0.0,
+                "integralLimit_min": 30,
+                "integralLimit_max": 255,
+                "outLim_min": 30,
+                "outLim_max": 255,
+                "slewNeg": 0.0,
+                "slewPos": 0.0
+            }
+        }
+    ],
+	"zones-base": [
+        {
+            "name": "chassis0",
+            "type": "margin",
+            "inputs": [
+            	"/sys/class/hwmon/hwmon1/value",
+            	"/sys/class/hwmon/hwmon2/value",
+            	"/sys/class/hwmon/hwmon3/value"
+            ],
+            "fans_pwm": [
+            	""
+            ],
+            "setpoint": 10,
+            "pid": {
+                "samplePeriod": 1,
+                "proportionalCoeff": 750.0,
+                "integralCoeff": 16.0,
+                "feedFwdOffsetCoeff": 0.0,
+                "feedFwdGainCoeff": 0.0,
+                "integralLimit_min": 3000,
+                "integralLimit_max": 10000,
+                "outLim_min": 3000,
+                "outLim_max": 10000,
+                "slewNeg": -100.0,
+                "slewPos": 0.0
+            }
+        },
+        {
+            "name": "CPU0",
+            "type": "margin",
+            "inputs": [
+            	"fleeting0"
+            ],
+            "fans_pwm": [
+            	""
+            ],
+            "setpoint": 10,
+            "pid": {
+                "samplePeriod": 1,
+                "proportionalCoeff": 750.0,
+                "integralCoeff": 16.0,
+                "feedFwdOffsetCoeff": 0.0,
+                "feedFwdGainCoeff": 0.0,
+                "integralLimit_min": 3000,
+                "integralLimit_max": 10000,
+                "outLim_min": 3000,
+                "outLim_max": 10000,
+                "slewNeg": -100.0,
+                "slewPos": 0.0
+            }
+        },
+        {
+            "name": "CPU1",
+            "type": "margin",
+            "inputs": [
+            	"fleeting0"
+            ],
+            "fans_pwm": [
+            	""
+            ],
+            "setpoint": 10,
+            "pid": {
+                "samplePeriod": 1,
+                "proportionalCoeff": 750.0,
+                "integralCoeff": 16.0,
+                "feedFwdOffsetCoeff": 0.0,
+                "feedFwdGainCoeff": 0.0,
+                "integralLimit_min": 3000,
+                "integralLimit_max": 10000,
+                "outLim_min": 3000,
+                "outLim_max": 10000,
+                "slewNeg": -100.0,
+                "slewPos": 0.0
+            }
+        }
+	]
+}
