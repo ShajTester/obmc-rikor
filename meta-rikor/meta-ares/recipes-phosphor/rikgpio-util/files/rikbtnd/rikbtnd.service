@@ -1,6 +1,7 @@
 [Unit]
 Description=rikbtnd Daemon
 After=sysinit.target
+# After=systemd-hostnamed.service
 
 [Service]
 Type=forking

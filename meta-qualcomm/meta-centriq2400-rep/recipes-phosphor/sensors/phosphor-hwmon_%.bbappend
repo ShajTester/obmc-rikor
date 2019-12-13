@@ -1,28 +1,14 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-NAMES = " apb/bus@1e78a000/i2c-bus@1c0/tmp421@1d \
-         apb/bus@1e78a000/i2c-bus@1c0/tmp421@1f \
-         apb/bus@1e78a000/i2c-bus@1c0/tmp421@4d \
+NAMES = " apb/bus@1e78a000/i2c-bus@1c0/lm75@49 \
+         apb/bus@1e78a000/i2c-bus@1c0/lm75@4b \
+         apb/bus@1e78a000/i2c-bus@1c0/lm75@4c \
+         apb/bus@1e78a000/i2c-bus@1c0/lm75@4e \
          apb/bus@1e78a000/i2c-bus@1c0/tmp421@4f \
-         apb/bus@1e78a000/i2c-bus@1c0/nvt210@4c \
-         apb/bus@1e78a000/i2c-bus@180/ir38163@42 \
-         apb/bus@1e78a000/i2c-bus@180/ir38163@44 \
-         apb/bus@1e78a000/i2c-bus@180/ir38163@46 \
-         apb/bus@1e78a000/i2c-bus@180/ir38163@48 \
-         apb/bus@1e78a000/i2c-bus@180/pxm1310@02 \
-         apb/bus@1e78a000/i2c-bus@180/pxm1310@04 \
-         apb/bus@1e78a000/i2c-bus@80/tmp421@1c \
-         apb/bus@1e78a000/i2c-bus@80/tmp421@1e \
-         apb/bus@1e78a000/i2c-bus@80/tmp421@2a \
-         apb/bus@1e78a000/i2c-bus@80/tmp421@4e \
-         apb/bus@1e78a000/i2c-bus@300/adm1278@10 \
-         apb/bus@1e78a000/i2c-bus@300/adm1278@11 \
-         apb/bus@1e78a000/i2c-bus@340/pca9641@70/i2c-arb/adm1278@12 \
-         apb/bus@1e78a000/i2c-bus@340/pca9641@70/i2c-arb/max31790@20 \
-         apb/bus@1e78a000/i2c-bus@340/pca9641@70/i2c-arb/max31790@23 \
-         apb/bus@1e78a000/i2c-bus@340/pca9641@70/i2c-arb/tmp421@1d \
-         apb/bus@1e78a000/i2c-bus@340/pca9641@70/i2c-arb/ds1100@58 \
-         flash-controller@1e631000/spi2@0 \
+         apb/bus@1e78a000/i2c-bus@300/pmbus@58 \
+         apb/bus@1e78a000/i2c-bus@300/pmbus@59 \
+         apb/bus@1e78b000/peci-bus@0/peci-client@30 \
+         apb/bus@1e78b000/peci-bus@0/peci-client@31 \
 "
 
 ITEMSFMT = "ahb/{0}.conf"

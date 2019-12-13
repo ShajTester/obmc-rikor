@@ -27,6 +27,8 @@ namespace fs = std::filesystem;
 using namespace std::literals::chrono_literals;
 using json = nlohmann::json;
 
+#define RIKFAN_DEBUG
+
 
 std::mutex              g_lock;
 std::condition_variable g_signal;
@@ -37,6 +39,8 @@ class Zone
 {
 private:
 	static const constexpr long long loop_min_delay = 300;
+	static const constexpr double stop_output_const = 130.0;
+	static const constexpr long error_read_temp = 100000;
 
 public:
 
@@ -44,10 +48,13 @@ public:
 	Zone(Zone &&that) = delete;
 	void operator=(const Zone&) = delete;
 
-	Zone(ec::pidinfo &pidinfo_initial,
+	Zone(std::string n,
+	     ec::pidinfo &pidinfo_initial,
 	     std::vector<std::string> &s,
 	     std::vector<std::string> &f,
-	     long long ms) : sensors(s), pwms(f), setpt(20.0)
+	     double sp,
+	     long long ms
+	    ) : name(n), sensors(s), pwms(f), setpt(sp)
 	{
 		pmainthread = nullptr;
 		if (ms < loop_min_delay)
@@ -91,6 +98,7 @@ private:
 	long long millisec;
 	std::unique_ptr<std::thread> pmainthread;
 
+	std::string name;
 	ec::pid_info_t pid_info;
 	double setpt;
 	std::vector<std::string> sensors;
@@ -101,23 +109,27 @@ private:
 	{
 
 		std::ifstream ifs;
-		int retval = 0;
+		double retval = 0;
 		for (const auto &str : sensors)
 		{
-			int val = 100;
+			long val;
 			ifs.open(str);
 			if (ifs.is_open())
 			{
 				ifs >> val;
 				if (!ifs.good())
 				{
-					val = 100;
+					val = error_read_temp;
 				}
 				ifs.close();
 			}
-			retval = std::max(retval, val);
+			else
+			{
+				val = error_read_temp;
+			}
+			retval = std::max(retval, (static_cast<double>(val) / 1000.0));
 		}
-		return static_cast<double>(retval);
+		return retval;
 	}
 
 	double processPID(double in)
@@ -134,9 +146,7 @@ private:
 			ofs.open(str);
 			if (ofs.is_open())
 			{
-				ofs << val << "\n\n";
-				dumpPIDStruct(ofs, &pid_info);
-				ofs << std::endl;
+				ofs << val;
 				ofs.close();
 			}
 		}
@@ -156,15 +166,32 @@ private:
 
 			if (!zone->initialized)
 			{
-
+				// For future use
+				zone->initialized = true;
 			}
 
 			auto input = zone->processInputs();
 			auto output = zone->processPID(input);
 			zone->processOutputs(output);
 
+#ifdef RIKFAN_DEBUG
+			std::ofstream ofs;
+			ofs.open(fs::path("/tmp/rikfan") / zone->name);
+			if (ofs.is_open())
+			{
+				ofs << "setpoint: " << zone->setpt;
+				ofs << "\ninput:    " << input;
+				ofs << "\noutput:   " << output;
+				ofs << "\n\n";
+				dumpPIDStruct(ofs, &zone->pid_info);
+				ofs << std::endl;
+				ofs.close();
+			}
+#endif // RIKFAN_DEBUG		
+
 			std::this_thread::sleep_for(delay);
 		}
+		zone->processOutputs(stop_output_const);
 	}
 
 };
@@ -181,65 +208,86 @@ int main(int argc, char const *argv[])
 {
 	openlog("rikfan", LOG_CONS, LOG_USER);
 
-	fs::path conf_fname = "/etc/rikfan/conf.json";
-	if(!fs::exists(conf_fname))
-	{
-		conf_fname = "/tmp/rikfan/conf.json";
-		if(!fs::exists(conf_fname))
-		{
-			syslog(LOG_ERR, "Need config file in '/etc/rikfan/conf.json' or '/tmp/rikfan/conf.json'");
-			std::cerr << "Need config file in '/etc/rikfan/conf.json' or '/tmp/rikfan/conf.json'";
-			return -1;
-		}
-	}
-	std::ifstream conf_stream {conf_fname};
-	json conf_json;
-	try
-	{
-		conf_stream >> conf_json;
-	}
-	catch (const std::exception &e)
-	{
-		// std::cerr << e.what() << std::endl;
-		syslog(LOG_ERR, "exception: %s", e.what());
-	}
+
 
 	std::vector<std::unique_ptr<Zone>> zones;
 
-	if (conf_json.count("zones") > 0)
 	{
-		for (const auto &z : conf_json["zones"])
+		fs::path conf_fname = "/etc/rikfan/conf.json";
+		if (!fs::exists(conf_fname))
 		{
-			ec::pidinfo pid_conf;
-			std::vector<std::string> sens_vect;
-			std::vector<std::string> pwm_vect;
+			conf_fname = "/tmp/rikfan/conf.json";
+			if (!fs::exists(conf_fname))
+			{
+				syslog(LOG_ERR, "Need config file in '/etc/rikfan/conf.json' or '/tmp/rikfan/conf.json'");
+				std::cerr << "Need config file in '/etc/rikfan/conf.json' or '/tmp/rikfan/conf.json'";
+				return -1;
+			}
+		}
 
-			z["inputs"].get_to(sens_vect);
-			z["fans_pwm"].get_to(pwm_vect);
+		std::ifstream conf_stream {conf_fname};
+		json conf_json;
+		try
+		{
+			conf_stream >> conf_json;
+		}
+		catch (const std::exception &e)
+		{
+			// std::cerr << e.what() << std::endl;
+			syslog(LOG_ERR, "exception: %s", e.what());
+		}
 
-			auto p = z["pid"];
-			p["samplePeriod"].get_to(pid_conf.ts);
-			p["proportionalCoeff"].get_to(pid_conf.proportionalCoeff);
-			p["integralCoeff"].get_to(pid_conf.integralCoeff);
-			p["feedFwdOffsetCoeff"].get_to(pid_conf.feedFwdOffset);
-			p["feedFwdGainCoeff"].get_to(pid_conf.feedFwdGain);
-			p["integralLimit_min"].get_to(pid_conf.integralLimit.min);
-			p["integralLimit_max"].get_to(pid_conf.integralLimit.max);
-			p["outLim_min"].get_to(pid_conf.outLim.min);
-			p["outLim_max"].get_to(pid_conf.outLim.max);
-			p["slewNeg"].get_to(pid_conf.slewNeg);
-			p["slewPos"].get_to(pid_conf.slewPos);
+		if (conf_json.count("zones") > 0)
+		{
+			for (const auto &z : conf_json["zones"])
+			{
+				ec::pidinfo pid_conf;
+				std::vector<std::string> sens_vect;
+				std::vector<std::string> pwm_vect;
+				double setpoint;
+				std::string zone_name;
 
-			zones.emplace_back(std::make_unique<Zone>(pid_conf, sens_vect, pwm_vect, 3000));
+				z["inputs"].get_to(sens_vect);
+				z["fans_pwm"].get_to(pwm_vect);
+				z["name"].get_to(zone_name);
+				z["setpoint"].get_to(setpoint);
+
+				auto p = z["pid"];
+				p["samplePeriod"].get_to(pid_conf.ts);
+				p["proportionalCoeff"].get_to(pid_conf.proportionalCoeff);
+				p["integralCoeff"].get_to(pid_conf.integralCoeff);
+				p["feedFwdOffsetCoeff"].get_to(pid_conf.feedFwdOffset);
+				p["feedFwdGainCoeff"].get_to(pid_conf.feedFwdGain);
+				p["integralLimit_min"].get_to(pid_conf.integralLimit.min);
+				p["integralLimit_max"].get_to(pid_conf.integralLimit.max);
+				p["outLim_min"].get_to(pid_conf.outLim.min);
+				p["outLim_max"].get_to(pid_conf.outLim.max);
+				p["slewNeg"].get_to(pid_conf.slewNeg);
+				p["slewPos"].get_to(pid_conf.slewPos);
+
+				zones.emplace_back(std::make_unique<Zone>(zone_name, pid_conf, sens_vect, pwm_vect, setpoint, pid_conf.ts * 1000));
+			}
 		}
 	}
 
-	if(zones.size() == 0)
+
+	if (zones.size() == 0)
 	{
 		syslog(LOG_ERR, "No zone configurations found");
 		std::cerr << "No zone configurations found";
 		return -1;
 	}
+
+#ifdef RIKFAN_DEBUG
+	{
+		fs::path debug_path("/tmp/rikfan");
+		if(!fs::exists(debug_path))
+		{
+			fs::create_directory(debug_path);
+		}
+	}
+#endif // RIKFAN_DEBUG
+
 
 	// TODO:
 	// Основной цикл должен обрабатывать внешние события.
@@ -254,7 +302,7 @@ int main(int argc, char const *argv[])
 	syslog(LOG_INFO, "Started control loop for %ld zones", zones.size());
 
 	g_done = false;
-	
+
 	std::signal(SIGINT, signalHandler);
 	std::signal(SIGABRT, signalHandler);
 	std::signal(SIGCONT, signalHandler);

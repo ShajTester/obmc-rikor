@@ -1,12 +1,11 @@
 [Unit]
-Description=The Apache HTTP Server
-After=network.target remote-fs.target nss-lookup.target
+Description=Rikor fan control service
+After=sysinit.target
+# After=systemd-hostnamed.service
 
 [Service]
-Type=Simple
+Type=simple
 ExecStart=/usr/bin/rikfan
-ExecStop=/bin/kill -WINCH ${MAINPID}
-KillSignal=SIGCONT
 
 [Install]
 WantedBy=multi-user.target
