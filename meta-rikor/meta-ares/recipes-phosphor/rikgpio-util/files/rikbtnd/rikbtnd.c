@@ -87,7 +87,6 @@ int power_command()
 
 	// if(adc_val > 700) power_state = true;
 	// else power_state = false;
-
 	power_state = (adc_val > 700);
 
 	syslog(LOG_INFO, "Power command in power state %d P3V3_BASE raw val %d", power_state, adc_val);
@@ -99,6 +98,9 @@ int power_command()
 		// usleep(10000);
 		gpio_set(g.gs_gpio, GPIO_VALUE_LOW);
 		gpio_change_direction(&g, GPIO_DIRECTION_IN);
+
+		// sprintf(blink_cmd, "/usr/local/bin/rikbtnd-afterpoweron.sh &");
+		system("/usr/local/bin/rikbtnd-afterpoweron.sh &");
 
 		sprintf(blink_cmd, "/usr/bin/ledblink-1.0 %d 10 &", gpio_num("GPIOQ7"));
 		// syslog(LOG_INFO, blink_cmd);

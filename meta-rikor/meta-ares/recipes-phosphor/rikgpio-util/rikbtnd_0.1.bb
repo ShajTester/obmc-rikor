@@ -34,6 +34,7 @@ do_install() {
   install -d $bin
   install -m 755 rikbtnd ${bin}/rikbtnd
   install -m 755 rikbtnd-setup.sh ${bin}/rikbtnd-setup.sh
+  install -m 755 rikbtnd-afterpoweron.sh ${bin}/rikbtnd-afterpoweron.sh
 
   install -d ${D}${systemd_system_unitdir}
   install -m 755 rikbtnd.service ${D}${systemd_system_unitdir}/rikbtnd.service
