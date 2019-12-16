@@ -22,30 +22,6 @@
 	},
     "zones": [
         {
-            "name": "test0",
-            "type": "margin",
-            "inputs": [
-                "/tmp/rikfan/s1"
-            ],
-            "fans_pwm": [
-                "/tmp/rikfan/p1"
-            ],
-            "setpoint": 10,
-            "pid": {
-                "samplePeriod": 1,
-                "proportionalCoeff": -4.25,
-                "integralCoeff": -0.01,
-                "feedFwdOffsetCoeff": 0.0,
-                "feedFwdGainCoeff": 0.0,
-                "integralLimit_min": 30,
-                "integralLimit_max": 255,
-                "outLim_min": 30,
-                "outLim_max": 255,
-                "slewNeg": 0.0,
-                "slewPos": 0.0
-            }
-        },
-        {
             "name": "chassis0",
             "type": "margin",
             "inputs": [
@@ -56,48 +32,25 @@
                 "/sys/class/hwmon/hwmon5/temp1_input"
             ],
             "fans_pwm": [
-                "/sys/class/hwmon/hwmon0/pwm1"
+                "/sys/class/hwmon/hwmon0/pwm1",
+                "/sys/class/hwmon/hwmon0/pwm2",
+                "/sys/class/hwmon/hwmon0/pwm3",
+                "/sys/class/hwmon/hwmon0/pwm4",
+                "/sys/class/hwmon/hwmon0/pwm5",
+                "/sys/class/hwmon/hwmon0/pwm6"
             ],
-            "setpoint": 10,
+            "setpoint": 30,
             "pid": {
-                "samplePeriod": 1,
-                "proportionalCoeff": -4.25,
+                "samplePeriod": 1.0,
+                "proportionalCoeff": -5.0,
                 "integralCoeff": -0.01,
                 "feedFwdOffsetCoeff": 0.0,
                 "feedFwdGainCoeff": 0.0,
-                "integralLimit_min": 30,
-                "integralLimit_max": 255,
-                "outLim_min": 30,
-                "outLim_max": 255,
+                "integralLimit_min": 0.0,
+                "integralLimit_max": 50.0,
+                "outLim_min": 50.0,
+                "outLim_max": 255.0,
                 "slewNeg": 0.0,
-                "slewPos": 0.0
-            }
-        }
-    ],
-	"zones-base": [
-        {
-            "name": "chassis0",
-            "type": "margin",
-            "inputs": [
-            	"/sys/class/hwmon/hwmon1/value",
-            	"/sys/class/hwmon/hwmon2/value",
-            	"/sys/class/hwmon/hwmon3/value"
-            ],
-            "fans_pwm": [
-            	""
-            ],
-            "setpoint": 10,
-            "pid": {
-                "samplePeriod": 1,
-                "proportionalCoeff": 750.0,
-                "integralCoeff": 16.0,
-                "feedFwdOffsetCoeff": 0.0,
-                "feedFwdGainCoeff": 0.0,
-                "integralLimit_min": 3000,
-                "integralLimit_max": 10000,
-                "outLim_min": 3000,
-                "outLim_max": 10000,
-                "slewNeg": -100.0,
                 "slewPos": 0.0
             }
         },
@@ -105,23 +58,23 @@
             "name": "CPU0",
             "type": "margin",
             "inputs": [
-            	"fleeting0"
+                "/sys/bus/peci/devices/0-30/peci-cputemp.0/hwmon/hwmon9/temp1_input"
             ],
             "fans_pwm": [
-            	""
+                "/sys/class/hwmon/hwmon0/pwm7"
             ],
-            "setpoint": 10,
+            "setpoint": 36,
             "pid": {
-                "samplePeriod": 1,
-                "proportionalCoeff": 750.0,
-                "integralCoeff": 16.0,
+                "samplePeriod": 0.5,
+                "proportionalCoeff": -6.0,
+                "integralCoeff": -0.05,
                 "feedFwdOffsetCoeff": 0.0,
                 "feedFwdGainCoeff": 0.0,
-                "integralLimit_min": 3000,
-                "integralLimit_max": 10000,
-                "outLim_min": 3000,
-                "outLim_max": 10000,
-                "slewNeg": -100.0,
+                "integralLimit_min": 0.0,
+                "integralLimit_max": 50.0,
+                "outLim_min": 50.0,
+                "outLim_max": 255.0,
+                "slewNeg": 0.0,
                 "slewPos": 0.0
             }
         },
@@ -129,25 +82,25 @@
             "name": "CPU1",
             "type": "margin",
             "inputs": [
-            	"fleeting0"
+                "/sys/bus/peci/devices/0-31/peci-cputemp.1/hwmon/hwmon10/temp1_input"
             ],
             "fans_pwm": [
-            	""
+                "/sys/class/hwmon/hwmon0/pwm8"
             ],
-            "setpoint": 10,
+            "setpoint": 36,
             "pid": {
-                "samplePeriod": 1,
-                "proportionalCoeff": 750.0,
-                "integralCoeff": 16.0,
+                "samplePeriod": 0.5,
+                "proportionalCoeff": -6.0,
+                "integralCoeff": -0.05,
                 "feedFwdOffsetCoeff": 0.0,
                 "feedFwdGainCoeff": 0.0,
-                "integralLimit_min": 3000,
-                "integralLimit_max": 10000,
-                "outLim_min": 3000,
-                "outLim_max": 10000,
-                "slewNeg": -100.0,
+                "integralLimit_min": 0.0,
+                "integralLimit_max": 50.0,
+                "outLim_min": 50.0,
+                "outLim_max": 255.0,
+                "slewNeg": 0.0,
                 "slewPos": 0.0
             }
         }
-	]
+    ]
 }

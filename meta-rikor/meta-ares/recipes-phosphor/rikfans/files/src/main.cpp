@@ -62,6 +62,8 @@ public:
 		else
 			millisec = ms;
 
+
+
 		initializePIDStruct(&pid_info, pidinfo_initial);
 	}
 
@@ -77,6 +79,9 @@ public:
 		stop_flag = false;
 		manualmode = false;
 		initialized = false;
+#ifdef RIKFAN_DEBUG
+		sample_time = std::chrono::system_clock::now();
+#endif
 		pmainthread = std::make_unique<std::thread>(&Zone::zone_control_loop, this);
 	}
 
@@ -104,6 +109,9 @@ private:
 	std::vector<std::string> sensors;
 	std::vector<std::string> pwms;
 
+#ifdef RIKFAN_DEBUG
+	decltype(std::chrono::system_clock::now()) sample_time;
+#endif
 
 	double processInputs()
 	{
@@ -175,6 +183,9 @@ private:
 			zone->processOutputs(output);
 
 #ifdef RIKFAN_DEBUG
+
+			auto new_sample = std::chrono::system_clock::now();
+
 			std::ofstream ofs;
 			ofs.open(fs::path("/tmp/rikfan") / zone->name);
 			if (ofs.is_open())
@@ -182,6 +193,9 @@ private:
 				ofs << "setpoint: " << zone->setpt;
 				ofs << "\ninput:    " << input;
 				ofs << "\noutput:   " << output;
+				std::chrono::duration<double> diff = new_sample - zone->sample_time;
+				zone->sample_time = new_sample;
+				ofs << "\nsample_time: " << diff.count();
 				ofs << "\n\n";
 				dumpPIDStruct(ofs, &zone->pid_info);
 				ofs << std::endl;
@@ -196,6 +210,8 @@ private:
 
 };
 
+
+
 void signalHandler( int signum )
 {
 	syslog(LOG_INFO, "Signal %d reached", signum);
@@ -206,11 +222,9 @@ void signalHandler( int signum )
 
 int main(int argc, char const *argv[])
 {
-	openlog("rikfan", LOG_CONS, LOG_USER);
-
-
-
 	std::vector<std::unique_ptr<Zone>> zones;
+
+	openlog("rikfan", LOG_CONS, LOG_USER);
 
 	{
 		fs::path conf_fname = "/etc/rikfan/conf.json";
