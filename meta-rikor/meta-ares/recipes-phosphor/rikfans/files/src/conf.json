@@ -39,15 +39,15 @@
                 "/sys/class/hwmon/hwmon0/pwm5",
                 "/sys/class/hwmon/hwmon0/pwm6"
             ],
-            "setpoint": 30,
+            "setpoint": 25,
             "pid": {
                 "samplePeriod": 1.0,
-                "proportionalCoeff": -5.0,
-                "integralCoeff": -0.01,
+                "proportionalCoeff": -8.0,
+                "integralCoeff": 0.0,
                 "feedFwdOffsetCoeff": 0.0,
                 "feedFwdGainCoeff": 0.0,
                 "integralLimit_min": 0.0,
-                "integralLimit_max": 50.0,
+                "integralLimit_max": 100.0,
                 "outLim_min": 50.0,
                 "outLim_max": 255.0,
                 "slewNeg": 0.0,
@@ -63,18 +63,18 @@
             "fans_pwm": [
                 "/sys/class/hwmon/hwmon0/pwm7"
             ],
-            "setpoint": 36,
+            "setpoint": 23,
             "pid": {
                 "samplePeriod": 0.5,
-                "proportionalCoeff": -6.0,
-                "integralCoeff": -0.05,
+                "proportionalCoeff": -8.0,
+                "integralCoeff": 0.0,
                 "feedFwdOffsetCoeff": 0.0,
                 "feedFwdGainCoeff": 0.0,
                 "integralLimit_min": 0.0,
-                "integralLimit_max": 50.0,
+                "integralLimit_max": 255.0,
                 "outLim_min": 50.0,
                 "outLim_max": 255.0,
-                "slewNeg": 0.0,
+                "slewNeg": -3.0,
                 "slewPos": 0.0
             }
         },
@@ -87,18 +87,18 @@
             "fans_pwm": [
                 "/sys/class/hwmon/hwmon0/pwm8"
             ],
-            "setpoint": 36,
+            "setpoint": 23,
             "pid": {
                 "samplePeriod": 0.5,
-                "proportionalCoeff": -6.0,
-                "integralCoeff": -0.05,
+                "proportionalCoeff": -8.0,
+                "integralCoeff": 0.0,
                 "feedFwdOffsetCoeff": 0.0,
                 "feedFwdGainCoeff": 0.0,
                 "integralLimit_min": 0.0,
-                "integralLimit_max": 50.0,
+                "integralLimit_max": 255.0,
                 "outLim_min": 50.0,
                 "outLim_max": 255.0,
-                "slewNeg": 0.0,
+                "slewNeg": -3.0,
                 "slewPos": 0.0
             }
         }
