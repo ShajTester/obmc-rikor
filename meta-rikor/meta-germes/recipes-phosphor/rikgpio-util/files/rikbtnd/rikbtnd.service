@@ -1,0 +1,12 @@
+[Unit]
+Description=rikbtnd Daemon
+After=sysinit.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/rikbtnd.pid
+ExecStartPre=/usr/local/bin/rikgpio
+ExecStart=/usr/local/bin/rikbtnd-setup.sh
+
+[Install]
+WantedBy=multi-user.target

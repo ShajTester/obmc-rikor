@@ -1,0 +1,38 @@
+diff --git a/arch/arm/boot/dts/aspeed-g4.dtsi b/arch/arm/boot/dts/aspeed-g4.dtsi
+index 6011692..6544c37 100644
+--- a/arch/arm/boot/dts/aspeed-g4.dtsi
++++ b/arch/arm/boot/dts/aspeed-g4.dtsi
+@@ -181,6 +181,16 @@
+ 				quality = <100>;
+ 			};
+ 
++			gfx: display@1e6e6000 {
++				compatible = "aspeed,ast2400-gfx", "syscon";
++				reg = <0x1e6e6000 0x1000>;
++				reg-io-width = <4>;
++				clocks = <&syscon ASPEED_CLK_GATE_D1CLK>;
++				resets = <&syscon ASPEED_RESET_CRT1>;
++				status = "disabled";
++				interrupts = <0x19>;
++			};
++
+ 			adc: adc@1e6e9000 {
+ 				compatible = "aspeed,ast2400-adc";
+ 				reg = <0x1e6e9000 0xb0>;
+@@ -190,6 +200,16 @@
+ 				status = "disabled";
+ 			};
+ 
++			video: video@1e700000 {
++				compatible = "aspeed,ast2400-video-engine";
++				reg = <0x1e700000 0x1000>;
++				clocks = <&syscon ASPEED_CLK_GATE_VCLK>,
++					 <&syscon ASPEED_CLK_GATE_ECLK>;
++				clock-names = "vclk", "eclk";
++				interrupts = <7>;
++				status = "disabled";
++			};
++
+ 			sram: sram@1e720000 {
+ 				compatible = "mmio-sram";
+ 				reg = <0x1e720000 0x8000>;	// 32K

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ $2 ] ; then
+
+	for (( cnt=0; cnt < $2; cnt++ ))
+	do
+		echo 1 > /sys/class/gpio/gpio$1/value
+		sleep 1
+		echo 0 > /sys/class/gpio/gpio$1/value
+		sleep 1
+	done
+
+	echo 1 > /sys/class/gpio/gpio$1/value
+
+else
+
+	while [ 1 ]
+	do
+		echo 1 > /sys/class/gpio/gpio$1/value
+		sleep 1s
+		echo 0 > /sys/class/gpio/gpio$1/value
+		sleep 1s
+	done
+
+fi
+
+

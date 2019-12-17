@@ -1,0 +1,12 @@
+[Unit]
+Description=Rikor-FRU initialisation
+After=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/fru-setup.sh
+RemainAfterExit=No
+TimeoutSec=0
+
+[Install]
+WantedBy=sysinit.target

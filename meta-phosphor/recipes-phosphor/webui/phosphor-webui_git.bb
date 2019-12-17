@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
 
 # SRC_URI = "git://github.com/openbmc/phosphor-webui.git"
 # SRC_URI = "git://github.com/tohas1986/phosphor-webui.git;branch=rikor"
-SRC_URI = "git://github.com/tohas1986/phosphor-webui.git;branch=rikorv2"
+SRC_URI = "git://github.com/tohas1986/phosphor-webui.git;branch=tohas-bulat"
 # SRCREV = "56059d0e5e088ec2c9b723ac362d12beb44a5abb"
 # SRCREV = "d68e73be1d5dc4fd6e3c039e4af6725e3754821d"
 # SRC_URI = "git:///home/tohas1986/phosphor-webui;protocol=git;branch=master"
