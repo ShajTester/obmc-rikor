@@ -18,5 +18,6 @@ else
 	logger "exist peci-client 0x31"
 fi
 
+echo -n "on" > /tmp/rikfan.pipe
 
 exit 0

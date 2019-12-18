@@ -277,6 +277,12 @@ int main(int argc, char const *argv[])
 
 				if (key_is_valid(in_login, in_key, false))
 				{
+					// Отключение автоматического режима
+					fd.open("/tmp/rikfan.pipe", std::ios::out);
+					fd << "manual";
+					fd.close();
+
+
 					int num;
 					json newPwm;
 					// Изменение задания в ручном режиме
@@ -338,6 +344,10 @@ int main(int argc, char const *argv[])
 			else
 			{
 				// fanauto = on
+				// Включение автоматического режима
+				fd.open("/tmp/rikfan.pipe", std::ios::out);
+				fd << "auto";
+				fd.close();
 
 			}
 		}

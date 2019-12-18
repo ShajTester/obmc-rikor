@@ -46,7 +46,7 @@ static gpio_poll_st g_gpios[] = {
 static int g_count = sizeof(g_gpios) / sizeof(gpio_poll_st);
 
 
-// bool power_state;
+bool power_state;
 bool PCH_cmd_flag;
 
 
@@ -69,7 +69,6 @@ int power_command()
 	char blink_cmd[81];
 	FILE *adc_file;
 	int adc_val;
-	bool power_state;
 
 	g.gs_gpio = gpio_num("GPIOY3");
 	// syslog(LOG_INFO, "GPIOY3 number is %d", g.gs_gpio);
@@ -260,12 +259,14 @@ void *start_pipe(void *ptr)
 
 		// Now open in write mode and write
 		// string taken from user.
-		// fd1 = open(myfifo,O_WRONLY);
-		// if(power_state)
-		// 	write(fd1, "on\0", 3);
-		// else
-		// 	write(fd1, "off\0", 4);
-		// close(fd1);
+		fd1 = open(myfifo,O_WRONLY);
+		// power_state соответствует состоянию до полачи команды питания.
+		// А нужно передать состояние после подачи команды питания.
+		if(power_state)
+			write(fd1, "off\0", 3);
+		else
+			write(fd1, "on\0", 4);
+		close(fd1);
 	}
 
 	unlink(myfifo);

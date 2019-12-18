@@ -18,6 +18,13 @@
 #include <functional>
 
 #include <filesystem>
+
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <nlohmann/json.hpp>
 
 #include "ec/pid.hpp"
@@ -33,6 +40,11 @@ using json = nlohmann::json;
 std::mutex              g_lock;
 std::condition_variable g_signal;
 bool                    g_done;
+bool                    cmd_quit;
+
+
+
+
 
 
 class Zone
@@ -78,7 +90,6 @@ public:
 			stop();
 		stop_flag = false;
 		manualmode = false;
-		initialized = false;
 #ifdef RIKFAN_DEBUG
 		sample_time = std::chrono::system_clock::now();
 #endif
@@ -95,10 +106,25 @@ public:
 		}
 	}
 
+	void command(const char *cmd)
+	{
+		if(std::strcmp(cmd, "manual") == 0)
+		{
+			manualmode = true;
+		}
+		else if (std::strcmp(cmd, "auto") == 0)
+		{
+			manualmode = false;
+		}
+		else if (std::strcmp(cmd, "on") == 0)
+		{
+			pid_info.lastOutput = pid_info.outLim.min;
+		}
+	}
+
 
 private:
 	bool manualmode;
-	bool initialized;
 	bool stop_flag;
 	long long millisec;
 	std::unique_ptr<std::thread> pmainthread;
@@ -162,53 +188,98 @@ private:
 
 	static void zone_control_loop(Zone *zone)
 	{
+#ifdef RIKFAN_DEBUG
 		auto delay = std::chrono::milliseconds(zone->millisec);
+#endif
 		while (!zone->stop_flag)
 		{
-			// if (zone->manualmode)
-			// {
-			// 	zone->initialized = false;
-			// 	std::this_thread::sleep_for(delay);
-			// 	continue;
-			// }
-
-			if (!zone->initialized)
+			if (zone->manualmode)
 			{
-				// For future use
-				zone->initialized = true;
+				std::this_thread::sleep_for(delay);
 			}
-
-			auto input = zone->processInputs();
-			auto output = zone->processPID(input);
-			zone->processOutputs(output);
+			else
+			{
+				auto input = zone->processInputs();
+				auto output = zone->processPID(input);
+				zone->processOutputs(output);
 
 #ifdef RIKFAN_DEBUG
 
-			auto new_sample = std::chrono::system_clock::now();
+				auto new_sample = std::chrono::system_clock::now();
 
-			std::ofstream ofs;
-			ofs.open(fs::path("/tmp/rikfan") / zone->name);
-			if (ofs.is_open())
-			{
-				ofs << "setpoint: " << zone->setpt;
-				ofs << "\ninput:    " << input;
-				ofs << "\noutput:   " << output;
-				std::chrono::duration<double> diff = new_sample - zone->sample_time;
-				zone->sample_time = new_sample;
-				ofs << "\nsample_time: " << diff.count();
-				ofs << "\n\n";
-				dumpPIDStruct(ofs, &zone->pid_info);
-				ofs << std::endl;
-				ofs.close();
-			}
+				std::ofstream ofs;
+				ofs.open(fs::path("/tmp/rikfan") / zone->name);
+				if (ofs.is_open())
+				{
+					ofs << "setpoint: " << zone->setpt;
+					ofs << "\ninput:    " << input;
+					ofs << "\noutput:   " << output;
+					std::chrono::duration<double> diff = new_sample - zone->sample_time;
+					zone->sample_time = new_sample;
+					ofs << "\nsample_time: " << diff.count();
+					ofs << "\n\n";
+					dumpPIDStruct(ofs, &zone->pid_info);
+					ofs << std::endl;
+					ofs.close();
+				}
 #endif // RIKFAN_DEBUG		
 
-			std::this_thread::sleep_for(delay);
+				std::this_thread::sleep_for(delay);
+			}
 		}
 		zone->processOutputs(stop_output_const);
 	}
 
 };
+
+static const constexpr auto myfifo = "/tmp/rikfan.pipe";
+
+void *start_pipe(std::vector<std::unique_ptr<Zone>> *zones)
+{
+	int fd1;
+	int rc;
+
+	// Creating the named file(FIFO)
+	// mkfifo(<pathname>,<permission>)
+	mkfifo(myfifo, 0644);
+
+	char str1[81];
+	// char str2[81];
+
+	fd1 = open(myfifo, O_RDONLY);
+	while (1)
+	{
+		// First open in read only and read
+		rc = read(fd1, str1, 80);
+		if (rc == -1)
+		{
+			syslog(LOG_ERR, "Read pipe error");
+		}
+		else if (rc == 0)
+		{
+		}
+		else
+		{
+			str1[rc] = 0;
+#ifdef RIKFAN_DEBUG
+			syslog(LOG_INFO, "Read string from pipe: <%s>", str1);
+#endif
+			if (std::strcmp(str1, "quit") == 0)
+			{
+				break;
+			}
+			else 
+			{
+				std::for_each(zones->begin(), zones->end(), [str1](auto &zone){ zone->command(str1); });
+			}
+		}
+	}
+
+	close(fd1);
+	unlink(myfifo);
+	return nullptr;
+}
+
 
 
 
@@ -303,13 +374,21 @@ int main(int argc, char const *argv[])
 #endif // RIKFAN_DEBUG
 
 
-	// TODO:
 	// Основной цикл должен обрабатывать внешние события.
 	// Такие как:
 	//    * включение - запуск управления вентиляторами;
 	//    * отключение
 	//    * переход в ручное управление.
+	
+	// Для этого создаем файловый сокет '/tmp/rikfan.pipe'
+	// В этот файл могут быть записаны следующие команды:
+	//    * on
+	//    * auto
+	//    * manual
 
+	auto cmd_thread = std::thread(&start_pipe, &zones);
+
+	// Запускаем циклы управления вентиляторами по зонам
 	for (auto &z : zones)
 		z->start();
 
@@ -329,11 +408,15 @@ int main(int argc, char const *argv[])
 	while (!g_done)
 		g_signal.wait(lock);
 
-	syslog(LOG_INFO, "Stop zones control loop. (FAN)");
 
-	// std::string instr;
-	// std::cin >> instr;
-	// std::cout << "\n\n\tProgramm complete!\n";
+
+	auto fd1 = open(myfifo,O_WRONLY);
+	write(fd1, "quit\0", 5);
+	close(fd1);
+	cmd_thread.join();
+
+
+	syslog(LOG_INFO, "Stop zones control loop. (FAN)");
 
 	return 0;
 }
