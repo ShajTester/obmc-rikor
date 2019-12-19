@@ -246,11 +246,12 @@ void *start_pipe(std::vector<std::unique_ptr<Zone>> *zones)
 	char str1[81];
 	// char str2[81];
 
-	fd1 = open(myfifo, O_RDONLY);
 	while (1)
 	{
 		// First open in read only and read
+		fd1 = open(myfifo, O_RDONLY);
 		rc = read(fd1, str1, 80);
+		close(fd1);
 		if (rc == -1)
 		{
 			syslog(LOG_ERR, "Read pipe error");
@@ -275,7 +276,6 @@ void *start_pipe(std::vector<std::unique_ptr<Zone>> *zones)
 		}
 	}
 
-	close(fd1);
 	unlink(myfifo);
 	return nullptr;
 }
