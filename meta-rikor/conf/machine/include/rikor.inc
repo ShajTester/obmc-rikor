@@ -15,7 +15,7 @@ VIRTUAL-RUNTIME_phosphor-ipmi-providers_append_df-openpower = " \
 "
 
 #This part should be replaced with Rikor OEM code
-PREFERRED_PROVIDER_virtual/obmc-host-ipmi-hw = "phosphor-ipmi-bt"
+PREFERRED_PROVIDER_virtual/obmc-host-ipmi-hw = "phosphor-ipmi-kcs"
 PREFERRED_PROVIDER_virtual/obmc-chassis-mgmt = "packagegroup-op-apps"
 PREFERRED_PROVIDER_virtual/obmc-fan-mgmt = "packagegroup-op-apps"
 PREFERRED_PROVIDER_virtual/obmc-flash-mgmt = "packagegroup-op-apps"
