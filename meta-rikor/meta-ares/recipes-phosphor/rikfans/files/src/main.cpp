@@ -34,7 +34,7 @@ namespace fs = std::filesystem;
 using namespace std::literals::chrono_literals;
 using json = nlohmann::json;
 
-#define RIKFAN_DEBUG
+// #define RIKFAN_DEBUG
 
 
 std::mutex              g_lock;
@@ -43,8 +43,30 @@ bool                    g_done;
 bool                    cmd_quit;
 
 
+void get_sensor_path(std::string &result, const std::string &str)
+{
+	auto pos = str.find('*');
+	if (pos == std::string::npos)
+	{
+		result = str;
+		return;
+	}
 
-
+	auto ppos = str.rfind('/', pos);
+	auto fpos = str.find('/', pos);
+	try 
+	{
+		for (const auto &p : fs::directory_iterator(str.substr(0, ppos) + "/hwmon/"))
+		{
+			result = (p.path() / str.substr(++fpos)).string();
+			break;
+		}
+	}
+	catch (std::exception &e)
+	{
+		result = str;
+	}
+}
 
 
 class Zone
@@ -66,15 +88,13 @@ public:
 	     std::vector<std::string> &f,
 	     double sp,
 	     long long ms
-	    ) : name(n), sensors(s), pwms(f), setpt(sp)
+	    ) : sensors(s), pwms(f), name(n), setpt(sp)
 	{
 		pmainthread = nullptr;
 		if (ms < loop_min_delay)
 			millisec = loop_min_delay;
 		else
 			millisec = ms;
-
-
 
 		initializePIDStruct(&pid_info, pidinfo_initial);
 	}
@@ -108,7 +128,7 @@ public:
 
 	void command(const char *cmd)
 	{
-		if(std::strcmp(cmd, "manual") == 0)
+		if (std::strcmp(cmd, "manual") == 0)
 		{
 			manualmode = true;
 		}
@@ -141,13 +161,14 @@ private:
 
 	double processInputs()
 	{
-
+		std::string actual_path;
 		std::ifstream ifs;
 		double retval = 0;
 		for (const auto &str : sensors)
 		{
 			long val;
-			ifs.open(str);
+			get_sensor_path(actual_path, str);
+			ifs.open(actual_path);
 			if (ifs.is_open())
 			{
 				ifs >> val;
@@ -173,11 +194,13 @@ private:
 
 	void processOutputs(double in)
 	{
+		std::string actual_path;
 		std::ofstream ofs;
 		int val = static_cast<int>(std::round(in));
 		for (const auto &str : pwms)
 		{
-			ofs.open(str);
+			get_sensor_path(actual_path, str);
+			ofs.open(actual_path);
 			if (ofs.is_open())
 			{
 				ofs << val;
@@ -238,13 +261,19 @@ void *start_pipe(std::vector<std::unique_ptr<Zone>> *zones)
 {
 	int fd1;
 	int rc;
+	char str1[81];
 
 	// Creating the named file(FIFO)
 	// mkfifo(<pathname>,<permission>)
-	mkfifo(myfifo, 0644);
-
-	char str1[81];
-	// char str2[81];
+	while(mkfifo(myfifo, 0644))
+	{
+		syslog(LOG_ERR, "Can not create %s. Errno %d", myfifo, errno);
+		unlink(myfifo);
+		// fs::path pfifo { myfifo };
+		if(fs::exists(myfifo))
+			fs::remove(myfifo);
+		sleep(5);
+	}
 
 	while (1)
 	{
@@ -269,9 +298,9 @@ void *start_pipe(std::vector<std::unique_ptr<Zone>> *zones)
 			{
 				break;
 			}
-			else 
+			else
 			{
-				std::for_each(zones->begin(), zones->end(), [str1](auto &zone){ zone->command(str1); });
+				std::for_each(zones->begin(), zones->end(), [str1](auto & zone) { zone->command(str1); });
 			}
 		}
 	}
@@ -366,20 +395,13 @@ int main(int argc, char const *argv[])
 #ifdef RIKFAN_DEBUG
 	{
 		fs::path debug_path("/tmp/rikfan");
-		if(!fs::exists(debug_path))
+		if (!fs::exists(debug_path))
 		{
 			fs::create_directory(debug_path);
 		}
 	}
 #endif // RIKFAN_DEBUG
 
-
-	// Основной цикл должен обрабатывать внешние события.
-	// Такие как:
-	//    * включение - запуск управления вентиляторами;
-	//    * отключение
-	//    * переход в ручное управление.
-	
 	// Для этого создаем файловый сокет '/tmp/rikfan.pipe'
 	// В этот файл могут быть записаны следующие команды:
 	//    * on
@@ -410,7 +432,7 @@ int main(int argc, char const *argv[])
 
 
 
-	auto fd1 = open(myfifo,O_WRONLY);
+	auto fd1 = open(myfifo, O_WRONLY);
 	write(fd1, "quit\0", 5);
 	close(fd1);
 	cmd_thread.join();

@@ -29,3 +29,17 @@ install (FILES   ${PROJECT_SOURCE_DIR}/src/conf.json    DESTINATION /etc/rikfan 
 
 # https://stackoverflow.com/questions/35765106/symbolic-links-cmake
 
+add_executable(rikfantest src/test.cpp)
+
+set_target_properties(rikfantest PROPERTIES
+  CXX_STANDARD 17
+  CXX_STANDARD_REQUIRED ON
+  COMPILE_OPTIONS -Wpedantic -Wall -Wextra
+)
+
+target_link_libraries(rikfantest
+	stdc++fs
+)
+
+# install (TARGETS rikfantest   RUNTIME DESTINATION bin)
+
