@@ -32,7 +32,7 @@ FILES_${PN} += "${libdir}/*.so"
 
 do_install_append() {
   install -d ${D}${systemd_system_unitdir}
-  install -m 755 rikor-fru.service ${D}${systemd_system_unitdir}/rikor-fru.service
+  install -m 644 rikor-fru.service ${D}${systemd_system_unitdir}/rikor-fru.service
 }
 
 FILES_${PN} += "${systemd_system_unitdir}"

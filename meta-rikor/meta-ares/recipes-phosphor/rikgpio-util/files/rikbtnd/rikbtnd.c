@@ -221,6 +221,7 @@ static void gpio_event_handle(gpio_poll_st *gp)
 
 void *start_pipe(void *ptr)
 {
+	char str1[81];
 	int fd1;
 	int rc;
 
@@ -229,15 +230,20 @@ void *start_pipe(void *ptr)
 
 	// Creating the named file(FIFO)
 	// mkfifo(<pathname>,<permission>)
-	mkfifo(myfifo, 0666);
+	while(mkfifo(myfifo, 0644))
+	{
+		syslog(LOG_ERR, "Can not create %s. Errno %d", myfifo, errno);
+		unlink(myfifo);
 
-	char str1[81];
-	// char str2[81];
+		sleep(5);
+	}
+
 	while (1)
 	{
 		// First open in read only and read
 		fd1 = open(myfifo, O_RDONLY);
 		rc = read(fd1, str1, 80);
+		close(fd1);
 		if (rc == -1)
 		{
 			syslog(LOG_ERR, "Read pipe error");
@@ -255,7 +261,6 @@ void *start_pipe(void *ptr)
 				PCH_command();
 			}
 		}
-		close(fd1);
 
 		// Now open in write mode and write
 		// string taken from user.

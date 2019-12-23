@@ -211,9 +211,7 @@ private:
 
 	static void zone_control_loop(Zone *zone)
 	{
-#ifdef RIKFAN_DEBUG
 		auto delay = std::chrono::milliseconds(zone->millisec);
-#endif
 		while (!zone->stop_flag)
 		{
 			if (zone->manualmode)

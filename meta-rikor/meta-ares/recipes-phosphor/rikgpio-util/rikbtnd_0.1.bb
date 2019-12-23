@@ -37,7 +37,7 @@ do_install() {
   install -m 755 rikbtnd-afterpoweron.sh ${bin}/rikbtnd-afterpoweron.sh
 
   install -d ${D}${systemd_system_unitdir}
-  install -m 755 rikbtnd.service ${D}${systemd_system_unitdir}/rikbtnd.service
+  install -m 644 rikbtnd.service ${D}${systemd_system_unitdir}/rikbtnd.service
 
   install -d ${D}${ROOT_HOME}
   install -m 644 .profile ${D}${ROOT_HOME}/.profile

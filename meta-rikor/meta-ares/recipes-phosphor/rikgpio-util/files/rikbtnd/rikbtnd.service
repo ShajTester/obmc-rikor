@@ -5,7 +5,7 @@ After=sysinit.target
 
 [Service]
 Type=forking
-PIDFile=/var/run/rikbtnd.pid
+PIDFile=/run/rikbtnd.pid
 ExecStartPre=/usr/local/bin/rikgpio
 ExecStart=/usr/local/bin/rikbtnd-setup.sh
 
