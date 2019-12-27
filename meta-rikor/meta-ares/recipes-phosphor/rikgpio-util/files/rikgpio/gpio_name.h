@@ -93,7 +93,7 @@
 #define IRQ_SML0_ALERT_N_DIR            0
 #define FM_SMI_ACTIVE_DIR               0
 #define FM_FORCE_BMC_UPDATE_DIR         0
-#define FM_CPU1_DISABLE_DIR             0       //1 -по идее должен быть output - TODO
+#define FM_CPU1_DISABLE_DIR             1       //1 -по идее должен быть output - TODO
 
 #define FP_PWR_BTN_MUX_N_DIR            0
 #define FM_BMC_PWR_BTN_N_DIR            1   

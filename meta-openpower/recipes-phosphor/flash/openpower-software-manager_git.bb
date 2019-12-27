@@ -14,10 +14,10 @@ inherit pythonnative
 
 inherit ${@bb.utils.contains('DISTRO_FEATURES', 'openpower-ubi-fs', 'openpower-software-manager-ubi', 'openpower-software-manager-static', d)}
 
-PACKAGECONFIG[verify_pnor_signature] = "--enable-verify_pnor_signature,--disable-verify_pnor_signature"
-PACKAGECONFIG[ubifs_layout] = "--enable-ubifs_layout,--disable-ubifs_layout,,mtd-utils-ubifs"
+# PACKAGECONFIG[verify_pnor_signature] = "--enable-verify_pnor_signature,--disable-verify_pnor_signature"
+# PACKAGECONFIG[ubifs_layout] = "--enable-ubifs_layout,--disable-ubifs_layout,,mtd-utils-ubifs"
 
-EXTRA_OECONF += " PNOR_MSL="v2.0.10 v2.2" "
+# EXTRA_OECONF += " PNOR_MSL="v2.0.10 v2.2" "
 
 DEPENDS += " \
         autoconf-archive-native \
@@ -31,14 +31,21 @@ RDEPENDS_${PN} += " \
         virtual-obmc-image-manager \
         "
 
+RDEPENDS_${PN} += "bash"
+
+
 S = "${WORKDIR}/git"
 
-SRC_URI += "git://github.com/openbmc/openpower-pnor-code-mgmt"
-# SRC_URI += "git://github.com/openbmc/phosphor-bmc-code-mgmt"
+# SRC_URI += "git://github.com/openbmc/openpower-pnor-code-mgmt"
+# SRCREV = "2b2d2298f5c6e9e596ed3ae84326a6ae804c46a4"
 
-SRCREV = "2b2d2298f5c6e9e596ed3ae84326a6ae804c46a4"
-# SRCREV = "a013560f96a9ee5c2db4e1778c7dcee199c3acf1"
+SRC_URI += "git://github.com/openbmc/phosphor-bmc-code-mgmt"
+SRCREV = "a013560f96a9ee5c2db4e1778c7dcee199c3acf1"
+FILES_${PN} += "/lib/systemd/system"
+FILES_${PN} += "/usr/lib/tmpfiles.d"
+
+
 
 DBUS_SERVICE_${PN} += "org.open_power.Software.Host.Updater.service"
 
-SYSTEMD_SERVICE_${PN} += "op-pnor-msl.service"
+# SYSTEMD_SERVICE_${PN} += "op-pnor-msl.service"

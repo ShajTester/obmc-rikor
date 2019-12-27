@@ -31,7 +31,7 @@ FEATURE_PACKAGES_obmc-bmc-state-mgmt ?= "packagegroup-obmc-apps-bmc-state-mgmt"
 FEATURE_PACKAGES_obmc-chassis-mgmt ?= "${@cf_enabled(d, 'obmc-phosphor-chassis-mgmt', 'virtual-obmc-chassis-mgmt')}"
 FEATURE_PACKAGES_obmc-chassis-state-mgmt ?= "packagegroup-obmc-apps-chassis-state-mgmt"
 FEATURE_PACKAGES_obmc-fan-control ?= "packagegroup-obmc-apps-fan-control"
-# FEATURE_PACKAGES_obmc-fan-mgmt ?= "${@cf_enabled(d, 'obmc-phosphor-fan-mgmt', 'virtual-obmc-fan-mgmt')}"
+FEATURE_PACKAGES_obmc-fan-mgmt ?= "${@cf_enabled(d, 'obmc-phosphor-fan-mgmt', 'virtual-obmc-fan-mgmt')}"
 FEATURE_PACKAGES_obmc-flash-mgmt ?= "${@cf_enabled(d, 'obmc-phosphor-flash-mgmt', 'virtual-obmc-flash-mgmt')}"
 FEATURE_PACKAGES_obmc-host-ctl ?= "${@cf_enabled(d, 'obmc-host-ctl', 'virtual-obmc-host-ctl')}"
 FEATURE_PACKAGES_obmc-host-ipmi ?= "${@cf_enabled(d, 'obmc-host-ipmi', 'virtual-obmc-host-ipmi-hw')}"
@@ -56,29 +56,29 @@ FEATURE_PACKAGES_obmc-net-ipmi_qemuall = ""
 
 # Install entire Phosphor application stack by default
 
-IMAGE_FEATURES += " \
-        obmc-bmc-state-mgmt \
-        obmc-host-ctl \
-        obmc-host-ipmi \
-        obmc-logging-mgmt \
-        ssh-server-dropbear \
-	obmc-sensors \
-        obmc-network-mgmt \
-        obmc-settings-mgmt \
-        obmc-system-mgmt \
-        obmc-user-mgmt \
-        obmc-debug-collector \
-        obmc-chassis-mgmt \
-        obmc-chassis-state-mgmt \
-        obmc-flash-mgmt \
-        obmc-host-state-mgmt \
-        obmc-inventory \
-        obmc-remote-logging-mgmt \
-        obmc-net-ipmi \
-        obmc-software \
-        obmc-leds \
-	obmc-fan-control \
-        "
+# IMAGE_FEATURES += "
+IMAGE_FEATURES += "obmc-bmc-state-mgmt"
+# IMAGE_FEATURES += "obmc-host-ctl"
+IMAGE_FEATURES += "obmc-host-ipmi"
+IMAGE_FEATURES += "obmc-logging-mgmt"
+IMAGE_FEATURES += "ssh-server-dropbear"
+IMAGE_FEATURES += "obmc-sensors"
+IMAGE_FEATURES += "obmc-network-mgmt"
+IMAGE_FEATURES += "obmc-settings-mgmt"
+IMAGE_FEATURES += "obmc-system-mgmt"
+IMAGE_FEATURES += "obmc-user-mgmt"
+IMAGE_FEATURES += "obmc-debug-collector"
+# IMAGE_FEATURES += "obmc-chassis-mgmt"
+# IMAGE_FEATURES += "obmc-chassis-state-mgmt"
+# IMAGE_FEATURES += "obmc-flash-mgmt"
+# IMAGE_FEATURES += "obmc-host-state-mgmt"
+IMAGE_FEATURES += "obmc-inventory"
+IMAGE_FEATURES += "obmc-remote-logging-mgmt"
+IMAGE_FEATURES += "obmc-net-ipmi"
+# IMAGE_FEATURES += "obmc-software"
+IMAGE_FEATURES += "obmc-leds"
+# IMAGE_FEATURES += "obmc-fan-control"
+
 
 
 IMAGE_FEATURES_append_df-obmc-ubi-fs = " read-only-rootfs"
