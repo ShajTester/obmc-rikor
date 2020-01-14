@@ -82,8 +82,8 @@ bool key_is_valid(std::string &l, const std::string &k, bool delete_key)
 
 
 #define CONFIG_FILE_NAME "/usr/local/fan.conf"
-#define minPWMraw   (40)
-#define nomPWMraw   (120)
+#define minPWMraw   (70)
+#define nomPWMraw   (140)
 #define PWMFileFmt  "/sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/pwm%d"
 #define FanFileFmt  "/sys/bus/platform/devices/1e786000.pwm-tacho-controller/hwmon/hwmon0/fan%d_input"
 
@@ -106,6 +106,10 @@ const std::vector<FANDescr> fanDescr {
 	{"CPU 0", "fan7", 6, 7},
 	{"CPU 1", "fan8", 5, 8}
 };
+
+
+const int fanmode_values[] = {minPWMraw, minPWMraw, nomPWMraw, 255};
+
 
 int rawPWM(std::string perc)
 {
@@ -314,6 +318,7 @@ int main(int argc, char const *argv[])
 						std::sprintf(cstr, PWMFileFmt, it.pwm);
 						fd.open(cstr, std::ios::out);
 
+						// Установить значения ШИМ
 						if (fd.is_open())
 						{
 							fd << readVal;
@@ -331,6 +336,8 @@ int main(int argc, char const *argv[])
 						newPwm["pwm" + std::to_string(it.pwm)] = readVal;
 					} // for
 
+					// Сохранить в файле конфигурации новые значения.
+					// Они будут установлены при перезагрузке.
 					std::ofstream confout {CONFIG_FILE_NAME};
 					confout << newPwm;
 					confout.close();
@@ -341,6 +348,80 @@ int main(int argc, char const *argv[])
 					syslog(LOG_ERR, "Key <%s> is not valid", in_key);
 				}
 			} // fanauto = off
+			else
+			{
+				// fanauto = on
+				// Включение автоматического режима
+				fd.open("/tmp/rikfan.pipe", std::ios::out);
+				fd << "auto";
+				fd.close();
+
+			}
+		}
+		else if (jin.count("fanmode") > 0)
+		{
+			int fanmode;
+			try
+			{
+				fanmode = std::stoi(jin["fanmode"].get<std::string>());
+			}
+			catch(const std::exception &e)
+			{
+				// Если что-то не сложилось,
+				// всегда включаем автоматический режим
+				fanmode = 0;
+			}
+
+			jout["fanmode"] = std::to_string(fanmode);
+
+			if ((fanmode >= 1) && (fanmode <= 3))
+			{
+				// Включен ручной режим управления
+				// Для изменения задания нужно проверить ключ
+				std::string in_login;
+				std::string in_key;
+				if (jin.count("key") == 1) in_key = jin["key"].get<std::string>();
+				jout["key"] = in_key;
+
+				if (key_is_valid(in_login, in_key, false))
+				{
+					// Отключение автоматического режима
+					fd.open("/tmp/rikfan.pipe", std::ios::out);
+					fd << "manual";
+					fd.close();
+
+					json newPwm;
+					readVal = fanmode_values[fanmode];
+					// Изменение задания в ручном режиме
+					for(const auto &it: fanDescr)
+					{
+						std::sprintf(cstr, PWMFileFmt, it.pwm);
+						fd.open(cstr, std::ios::out);
+
+						// Установить значения ШИМ
+						if (fd.is_open())
+						{
+							fd << readVal;
+							if (!fd.good())
+							{
+								syslog(LOG_ERR, "Error %d write to file <%s>", errno, cstr);
+							}
+							fd.close();
+						}
+						else
+						{
+							syslog(LOG_ERR, "Error %d open file <%s>", errno, cstr);
+						}
+
+						newPwm["pwm" + std::to_string(it.pwm)] = readVal;
+					}
+					// Сохранить в файле конфигурации новые значения.
+					// Они будут установлены при перезагрузке.
+					std::ofstream confout {CONFIG_FILE_NAME};
+					confout << newPwm;
+					confout.close();
+				}
+			}
 			else
 			{
 				// fanauto = on

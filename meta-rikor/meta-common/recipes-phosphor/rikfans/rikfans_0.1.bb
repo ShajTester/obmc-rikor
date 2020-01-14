@@ -23,7 +23,19 @@ PR = "r1"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=838c366f69b72c5df05c96dff79b35f2"
 
-SRC_URI = "file://*"
+SRC_URI = " \
+	file://LICENSE \
+	file://CMakeLists.txt \
+	file://rikfan.service \
+	file://src/main.cpp \
+	file://src/test.cpp \
+	file://src/util.cpp \
+	file://src/util.hpp \
+	file://src/ec/pid.cpp \
+	file://src/ec/pid.hpp \
+	file://src/ec/stepwise.cpp \
+	file://src/ec/stepwise.hpp \
+	"
 SRCREV = "${AUTOREV}"
 
 DEPENDS += "systemd nlohmann-json"
