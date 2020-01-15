@@ -34,7 +34,7 @@ namespace fs = std::filesystem;
 using namespace std::literals::chrono_literals;
 using json = nlohmann::json;
 
-// #define RIKFAN_DEBUG
+#define RIKFAN_DEBUG
 
 
 std::mutex              g_lock;
@@ -74,7 +74,7 @@ class Zone
 private:
 	static const constexpr long long loop_min_delay = 300;
 	static const constexpr double stop_output_const = 130.0;
-	static const constexpr long error_read_temp = 100000;
+	static const constexpr long margin_error_read_temp = 100000;
 
 public:
 
@@ -83,18 +83,24 @@ public:
 	void operator=(const Zone&) = delete;
 
 	Zone(std::string n,
+		 std::string t,
 	     ec::pidinfo &pidinfo_initial,
 	     std::vector<std::string> &s,
 	     std::vector<std::string> &f,
 	     double sp,
 	     long long ms
-	    ) : sensors(s), pwms(f), name(n), setpt(sp)
+	    ) : sensors(s), pwms(f), name(n), type(t), setpt(sp)
 	{
 		pmainthread = nullptr;
 		if (ms < loop_min_delay)
 			millisec = loop_min_delay;
 		else
 			millisec = ms;
+
+		if(type == "one")
+			error_read_temp = 0;
+		else
+			error_read_temp = margin_error_read_temp;
 
 		initializePIDStruct(&pid_info, pidinfo_initial);
 	}
@@ -150,10 +156,12 @@ private:
 	std::unique_ptr<std::thread> pmainthread;
 
 	std::string name;
+	std::string type;
 	ec::pid_info_t pid_info;
 	double setpt;
 	std::vector<std::string> sensors;
 	std::vector<std::string> pwms;
+	long error_read_temp;
 
 #ifdef RIKFAN_DEBUG
 	decltype(std::chrono::system_clock::now()) sample_time;
@@ -184,6 +192,11 @@ private:
 			}
 			retval = std::max(retval, (static_cast<double>(val) / 1000.0));
 		}
+
+		// for type == "one"
+		if(retval == 0)
+			retval = margin_error_read_temp;
+
 		return retval;
 	}
 
@@ -358,10 +371,12 @@ int main(int argc, char const *argv[])
 				std::vector<std::string> pwm_vect;
 				double setpoint;
 				std::string zone_name;
+				std::string zone_type;
 
 				z["inputs"].get_to(sens_vect);
 				z["fans_pwm"].get_to(pwm_vect);
 				z["name"].get_to(zone_name);
+				z["type"].get_to(zone_type);
 				z["setpoint"].get_to(setpoint);
 
 				auto p = z["pid"];
@@ -377,7 +392,7 @@ int main(int argc, char const *argv[])
 				p["slewNeg"].get_to(pid_conf.slewNeg);
 				p["slewPos"].get_to(pid_conf.slewPos);
 
-				zones.emplace_back(std::make_unique<Zone>(zone_name, pid_conf, sens_vect, pwm_vect, setpoint, pid_conf.ts * 1000));
+				zones.emplace_back(std::make_unique<Zone>(zone_name, zone_type, pid_conf, sens_vect, pwm_vect, setpoint, pid_conf.ts * 1000));
 			}
 		}
 	}
