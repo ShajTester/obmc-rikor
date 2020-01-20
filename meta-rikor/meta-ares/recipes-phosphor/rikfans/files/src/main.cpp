@@ -34,7 +34,7 @@ namespace fs = std::filesystem;
 using namespace std::literals::chrono_literals;
 using json = nlohmann::json;
 
-#define RIKFAN_DEBUG
+// #define RIKFAN_DEBUG
 
 
 std::mutex              g_lock;

@@ -48,7 +48,7 @@
                 "integralLimit_max": 100.0,
                 "outLim_min": 50.0,
                 "outLim_max": 255.0,
-                "slewNeg": 0.0,
+                "slewNeg": -1.0,
                 "slewPos": 0.0
             }
         },
@@ -74,7 +74,7 @@
                 "integralLimit_max": 100.0,
                 "outLim_min": 50.0,
                 "outLim_max": 255.0,
-                "slewNeg": 0.0,
+                "slewNeg": -1.0,
                 "slewPos": 0.0
             }
         },
@@ -103,9 +103,9 @@
                 "integralLimit_max": 255.0,
                 "outLim_min": 50.0,
                 "outLim_max": 255.0,
-                "slewNeg": -3.0,
+                "slewNeg": -1.0,
                 "slewPos": 0.0
             }
-        },
+        }
     ]
 }
