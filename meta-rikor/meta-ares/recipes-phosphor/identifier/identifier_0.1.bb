@@ -24,7 +24,7 @@ LICENSE = "CLOSED"
 
 SRC_URI[md5sum] = "0fcda301d8ca8c6ab7aa495e27f7e5d6"
 SRC_URI = "git://git.rikor.com:3000/yurchenko/identifier;branch=development;protocol=http"
-SRCREV = "92d61eec54aa1ea7f966bf058978cb6a6ee8674a"
+SRCREV = "0f0e54cf12fd47933a8c36084ba28f7919a8344a"
 
 S = "${WORKDIR}/git"
 

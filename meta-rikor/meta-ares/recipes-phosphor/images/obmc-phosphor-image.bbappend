@@ -15,5 +15,6 @@ IMAGE_INSTALL += "rikcgi-login"
 IMAGE_INSTALL += "rikor-fru"
 IMAGE_INSTALL += "rikfans"
 IMAGE_INSTALL += "ledblink-lt"
+IMAGE_INSTALL += "identifier"
 
 
