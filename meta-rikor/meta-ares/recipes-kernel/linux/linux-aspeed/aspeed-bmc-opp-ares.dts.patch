@@ -1,0 +1,29 @@
+diff --git a/arch/arm/boot/dts/aspeed-bmc-opp-ares.dts b/arch/arm/boot/dts/aspeed-bmc-opp-ares.dts
+index 9107628..47bc18d 100644
+--- a/arch/arm/boot/dts/aspeed-bmc-opp-ares.dts
++++ b/arch/arm/boot/dts/aspeed-bmc-opp-ares.dts
+@@ -168,16 +168,21 @@
+ 	status = "okay";
+ };
+ 
++/*
+ &mac0 {
+ 	status = "okay";
+-
+ 	use-ncsi;
+-
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_rmii1_default>;
+ };
++*/
+ 
+-
++&mac1 {
++	status = "okay";
++	phy-mode = "rmii";
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_rmii2_default &pinctrl_mdio2_default>;
++};
+ 
+ &gfx {
+      status = "okay";
