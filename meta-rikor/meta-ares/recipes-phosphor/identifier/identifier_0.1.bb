@@ -23,7 +23,7 @@ LICENSE = "CLOSED"
 #LIC_FILES_CHKSUM = "file://LICENSE;md5=838c366f69b72c5df05c96dff79b35f2"
 
 SRC_URI[md5sum] = "0fcda301d8ca8c6ab7aa495e27f7e5d6"
-SRC_URI = "git://git.rikor.com:3000/yurchenko/identifier;branch=development;protocol=http"
+SRC_URI = "git://github.com/TsuReX/identifier.git;branch=development;protocol=http"
 SRCREV = "0f0e54cf12fd47933a8c36084ba28f7919a8344a"
 
 S = "${WORKDIR}/git"
