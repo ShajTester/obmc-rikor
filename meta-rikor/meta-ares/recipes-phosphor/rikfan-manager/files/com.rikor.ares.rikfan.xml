@@ -1,0 +1,12 @@
+<node>
+	<interface name="com.rikor.ares.rikfan">
+		<method name="HelloWorld">
+			<arg name="greeting" direction="in" type="s"/>
+			<arg name="response" direction="out" type="s"/>
+		</method>
+		<method name="FanMode">
+			<arg name="greeting" direction="in" type="s"/>
+			<arg name="response" direction="out" type="s"/>
+		</method>
+	</interface>
+</node>

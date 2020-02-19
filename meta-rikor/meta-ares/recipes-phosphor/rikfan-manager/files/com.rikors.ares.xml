@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE busconfig PUBLIC
+ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <!-- Only my-service-user can own the service -->
+  <policy user="shaj">
+    <allow own="com.rikor.ares"/>
+  </policy>
+  <policy user="root">
+    <allow own="com.rikor.ares"/>
+  </policy>
+
+  <!-- Anyone can send messages to the service -->
+  <policy context="default">
+    <allow send_destination="com.rikor.ares"/>
+  </policy>
+</busconfig>

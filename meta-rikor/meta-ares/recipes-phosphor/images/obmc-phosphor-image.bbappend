@@ -17,5 +17,6 @@ IMAGE_INSTALL += "rikfans"
 IMAGE_INSTALL += "ledblink-lt"
 IMAGE_INSTALL += "identifier"
 IMAGE_INSTALL += "ddiag"
+IMAGE_INSTALL += "rikfan-manager"
 
 
