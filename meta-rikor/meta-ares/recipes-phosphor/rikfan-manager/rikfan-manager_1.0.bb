@@ -5,7 +5,8 @@
 
 DESCRIPTION = "Rikfan manager for DBus"
 SECTION = "examples"
-DEPENDS += "glibc dbus dbus-glib glib-2.0"
+DEPENDS += "glibc dbus dbus-glib glib-2.0 glib-2.0-native"
+# DEPENDS += "glib-2.0 glib-2.0-native"
 RDEPENDS_${PN} += ""
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=838c366f69b72c5df05c96dff79b35f2"
@@ -19,20 +20,18 @@ SRC_URI =  "file://client.c \
             file://com.rikors.ares.xml \
             file://Makefile \
             file://README.md \
-            file://rikfan-manager.c \
-            file://rikfan-manager.h \
             file://server.c \
             file://LICENSE "
 
 
 #inherit systemd
-#inherit pkgconfig
+inherit pkgconfig
 
 # Make sure our source directory (for the build) matches the directory structure in the tarball
 S = "${WORKDIR}"
 
 do_compile() {
-	#make gen
+	make gen
 	make
 }
 

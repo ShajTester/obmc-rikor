@@ -28,6 +28,7 @@ struct _RikfanIface
 {
   GTypeInterface parent_iface;
 
+
   gboolean (*handle_fan_mode) (
     Rikfan *object,
     GDBusMethodInvocation *invocation,
@@ -37,6 +38,8 @@ struct _RikfanIface
     Rikfan *object,
     GDBusMethodInvocation *invocation,
     const gchar *arg_greeting);
+
+  const gchar * (*get_mode_test) (Rikfan *object);
 
 };
 
@@ -100,6 +103,12 @@ gboolean rikfan_call_fan_mode_sync (
     GCancellable *cancellable,
     GError **error);
 
+
+
+/* D-Bus property accessors: */
+const gchar *rikfan_get_mode_test (Rikfan *object);
+gchar *rikfan_dup_mode_test (Rikfan *object);
+void rikfan_set_mode_test (Rikfan *object, const gchar *value);
 
 
 /* ---- */

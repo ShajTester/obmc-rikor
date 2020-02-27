@@ -264,6 +264,25 @@ static const _ExtendedGDBusMethodInfo * const _rikfan_method_info_pointers[] =
   NULL
 };
 
+static const _ExtendedGDBusPropertyInfo _rikfan_property_info_mode_test =
+{
+  {
+    -1,
+    (gchar *) "ModeTest",
+    (gchar *) "s",
+    G_DBUS_PROPERTY_INFO_FLAGS_READABLE | G_DBUS_PROPERTY_INFO_FLAGS_WRITABLE,
+    NULL
+  },
+  "mode-test",
+  FALSE
+};
+
+static const _ExtendedGDBusPropertyInfo * const _rikfan_property_info_pointers[] =
+{
+  &_rikfan_property_info_mode_test,
+  NULL
+};
+
 static const _ExtendedGDBusInterfaceInfo _rikfan_interface_info =
 {
   {
@@ -271,7 +290,7 @@ static const _ExtendedGDBusInterfaceInfo _rikfan_interface_info =
     (gchar *) "com.rikor.ares.rikfan",
     (GDBusMethodInfo **) &_rikfan_method_info_pointers,
     NULL,
-    NULL,
+    (GDBusPropertyInfo **) &_rikfan_property_info_pointers,
     NULL
   },
   "rikfan",
@@ -304,6 +323,7 @@ rikfan_interface_info (void)
 guint
 rikfan_override_properties (GObjectClass *klass, guint property_id_begin)
 {
+  g_object_class_override_property (klass, property_id_begin++, "mode-test");
   return property_id_begin - 1;
 }
 
@@ -320,6 +340,7 @@ rikfan_override_properties (GObjectClass *klass, guint property_id_begin)
  * @parent_iface: The parent interface.
  * @handle_fan_mode: Handler for the #Rikfan::handle-fan-mode signal.
  * @handle_hello_world: Handler for the #Rikfan::handle-hello-world signal.
+ * @get_mode_test: Getter for the #Rikfan:mode-test property.
  *
  * Virtual table for the D-Bus interface <link linkend="gdbus-interface-com-rikor-ares-rikfan.top_of_page">com.rikor.ares.rikfan</link>.
  */
@@ -377,6 +398,67 @@ rikfan_default_init (RikfanIface *iface)
     2,
     G_TYPE_DBUS_METHOD_INVOCATION, G_TYPE_STRING);
 
+  /* GObject properties for D-Bus properties: */
+  /**
+   * Rikfan:mode-test:
+   *
+   * Represents the D-Bus property <link linkend="gdbus-property-com-rikor-ares-rikfan.ModeTest">"ModeTest"</link>.
+   *
+   * Since the D-Bus property for this #GObject property is both readable and writable, it is meaningful to both read from it and write to it on both the service- and client-side.
+   */
+  g_object_interface_install_property (iface,
+    g_param_spec_string ("mode-test", "ModeTest", "ModeTest", NULL, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+}
+
+/**
+ * rikfan_get_mode_test: (skip)
+ * @object: A #Rikfan.
+ *
+ * Gets the value of the <link linkend="gdbus-property-com-rikor-ares-rikfan.ModeTest">"ModeTest"</link> D-Bus property.
+ *
+ * Since this D-Bus property is both readable and writable, it is meaningful to use this function on both the client- and service-side.
+ *
+ * <warning>The returned value is only valid until the property changes so on the client-side it is only safe to use this function on the thread where @object was constructed. Use rikfan_dup_mode_test() if on another thread.</warning>
+ *
+ * Returns: (transfer none): The property value or %NULL if the property is not set. Do not free the returned value, it belongs to @object.
+ */
+const gchar *
+rikfan_get_mode_test (Rikfan *object)
+{
+  return RIKFAN_GET_IFACE (object)->get_mode_test (object);
+}
+
+/**
+ * rikfan_dup_mode_test: (skip)
+ * @object: A #Rikfan.
+ *
+ * Gets a copy of the <link linkend="gdbus-property-com-rikor-ares-rikfan.ModeTest">"ModeTest"</link> D-Bus property.
+ *
+ * Since this D-Bus property is both readable and writable, it is meaningful to use this function on both the client- and service-side.
+ *
+ * Returns: (transfer full): The property value or %NULL if the property is not set. The returned value should be freed with g_free().
+ */
+gchar *
+rikfan_dup_mode_test (Rikfan *object)
+{
+  gchar *value;
+  g_object_get (G_OBJECT (object), "mode-test", &value, NULL);
+  return value;
+}
+
+/**
+ * rikfan_set_mode_test: (skip)
+ * @object: A #Rikfan.
+ * @value: The value to set.
+ *
+ * Sets the <link linkend="gdbus-property-com-rikor-ares-rikfan.ModeTest">"ModeTest"</link> D-Bus property to @value.
+ *
+ * Since this D-Bus property is both readable and writable, it is meaningful to use this function on both the client- and service-side.
+ */
+void
+rikfan_set_mode_test (Rikfan *object, const gchar *value)
+{
+  g_object_set (G_OBJECT (object), "mode-test", value, NULL);
 }
 
 /**
@@ -675,6 +757,45 @@ rikfan_proxy_get_property (GObject      *object,
   GValue       *value,
   GParamSpec   *pspec G_GNUC_UNUSED)
 {
+  const _ExtendedGDBusPropertyInfo *info;
+  GVariant *variant;
+  g_assert (prop_id != 0 && prop_id - 1 < 1);
+  info = _rikfan_property_info_pointers[prop_id - 1];
+  variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (object), info->parent_struct.name);
+  if (info->use_gvariant)
+    {
+      g_value_set_variant (value, variant);
+    }
+  else
+    {
+      if (variant != NULL)
+        g_dbus_gvariant_to_gvalue (variant, value);
+    }
+  if (variant != NULL)
+    g_variant_unref (variant);
+}
+
+static void
+rikfan_proxy_set_property_cb (GDBusProxy *proxy,
+  GAsyncResult *res,
+  gpointer      user_data)
+{
+  const _ExtendedGDBusPropertyInfo *info = user_data;
+  GError *error;
+  GVariant *_ret;
+  error = NULL;
+  _ret = g_dbus_proxy_call_finish (proxy, res, &error);
+  if (!_ret)
+    {
+      g_warning ("Error setting property '%s' on interface com.rikor.ares.rikfan: %s (%s, %d)",
+                 info->parent_struct.name, 
+                 error->message, g_quark_to_string (error->domain), error->code);
+      g_error_free (error);
+    }
+  else
+    {
+      g_variant_unref (_ret);
+    }
 }
 
 static void
@@ -683,6 +804,18 @@ rikfan_proxy_set_property (GObject      *object,
   const GValue *value,
   GParamSpec   *pspec G_GNUC_UNUSED)
 {
+  const _ExtendedGDBusPropertyInfo *info;
+  GVariant *variant;
+  g_assert (prop_id != 0 && prop_id - 1 < 1);
+  info = _rikfan_property_info_pointers[prop_id - 1];
+  variant = g_dbus_gvalue_to_gvariant (value, G_VARIANT_TYPE (info->parent_struct.signature));
+  g_dbus_proxy_call (G_DBUS_PROXY (object),
+    "org.freedesktop.DBus.Properties.Set",
+    g_variant_new ("(ssv)", "com.rikor.ares.rikfan", info->parent_struct.name, variant),
+    G_DBUS_CALL_FLAGS_NONE,
+    -1,
+    NULL, (GAsyncReadyCallback) rikfan_proxy_set_property_cb, (GDBusPropertyInfo *) &info->parent_struct);
+  g_variant_unref (variant);
 }
 
 static void
@@ -755,6 +888,21 @@ rikfan_proxy_g_properties_changed (GDBusProxy *_proxy,
     }
 }
 
+static const gchar *
+rikfan_proxy_get_mode_test (Rikfan *object)
+{
+  RikfanProxy *proxy = RIKFAN_PROXY (object);
+  GVariant *variant;
+  const gchar *value = NULL;
+  variant = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (proxy), "ModeTest");
+  if (variant != NULL)
+    {
+      value = g_variant_get_string (variant, NULL);
+      g_variant_unref (variant);
+    }
+  return value;
+}
+
 static void
 rikfan_proxy_init (RikfanProxy *proxy)
 {
@@ -782,6 +930,8 @@ rikfan_proxy_class_init (RikfanProxyClass *klass)
   proxy_class->g_signal = rikfan_proxy_g_signal;
   proxy_class->g_properties_changed = rikfan_proxy_g_properties_changed;
 
+  rikfan_override_properties (gobject_class, 1);
+
 #if GLIB_VERSION_MAX_ALLOWED < GLIB_VERSION_2_38
   g_type_class_add_private (klass, sizeof (RikfanProxyPrivate));
 #endif
@@ -790,6 +940,7 @@ rikfan_proxy_class_init (RikfanProxyClass *klass)
 static void
 rikfan_proxy_iface_init (RikfanIface *iface)
 {
+  iface->get_mode_test = rikfan_proxy_get_mode_test;
 }
 
 /**
@@ -1179,9 +1330,25 @@ out:
   return g_variant_builder_end (&builder);
 }
 
+static gboolean _rikfan_emit_changed (gpointer user_data);
+
 static void
 rikfan_skeleton_dbus_interface_flush (GDBusInterfaceSkeleton *_skeleton)
 {
+  RikfanSkeleton *skeleton = RIKFAN_SKELETON (_skeleton);
+  gboolean emit_changed = FALSE;
+
+  g_mutex_lock (&skeleton->priv->lock);
+  if (skeleton->priv->changed_properties_idle_source != NULL)
+    {
+      g_source_destroy (skeleton->priv->changed_properties_idle_source);
+      skeleton->priv->changed_properties_idle_source = NULL;
+      emit_changed = TRUE;
+    }
+  g_mutex_unlock (&skeleton->priv->lock);
+
+  if (emit_changed)
+    _rikfan_emit_changed (skeleton);
 }
 
 static void rikfan_skeleton_iface_init (RikfanIface *iface);
@@ -1199,12 +1366,155 @@ static void
 rikfan_skeleton_finalize (GObject *object)
 {
   RikfanSkeleton *skeleton = RIKFAN_SKELETON (object);
+  guint n;
+  for (n = 0; n < 1; n++)
+    g_value_unset (&skeleton->priv->properties[n]);
+  g_free (skeleton->priv->properties);
   g_list_free_full (skeleton->priv->changed_properties, (GDestroyNotify) _changed_property_free);
   if (skeleton->priv->changed_properties_idle_source != NULL)
     g_source_destroy (skeleton->priv->changed_properties_idle_source);
   g_main_context_unref (skeleton->priv->context);
   g_mutex_clear (&skeleton->priv->lock);
   G_OBJECT_CLASS (rikfan_skeleton_parent_class)->finalize (object);
+}
+
+static void
+rikfan_skeleton_get_property (GObject      *object,
+  guint         prop_id,
+  GValue       *value,
+  GParamSpec   *pspec G_GNUC_UNUSED)
+{
+  RikfanSkeleton *skeleton = RIKFAN_SKELETON (object);
+  g_assert (prop_id != 0 && prop_id - 1 < 1);
+  g_mutex_lock (&skeleton->priv->lock);
+  g_value_copy (&skeleton->priv->properties[prop_id - 1], value);
+  g_mutex_unlock (&skeleton->priv->lock);
+}
+
+static gboolean
+_rikfan_emit_changed (gpointer user_data)
+{
+  RikfanSkeleton *skeleton = RIKFAN_SKELETON (user_data);
+  GList *l;
+  GVariantBuilder builder;
+  GVariantBuilder invalidated_builder;
+  guint num_changes;
+
+  g_mutex_lock (&skeleton->priv->lock);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+  g_variant_builder_init (&invalidated_builder, G_VARIANT_TYPE ("as"));
+  for (l = skeleton->priv->changed_properties, num_changes = 0; l != NULL; l = l->next)
+    {
+      ChangedProperty *cp = l->data;
+      GVariant *variant;
+      const GValue *cur_value;
+
+      cur_value = &skeleton->priv->properties[cp->prop_id - 1];
+      if (!_g_value_equal (cur_value, &cp->orig_value))
+        {
+          variant = g_dbus_gvalue_to_gvariant (cur_value, G_VARIANT_TYPE (cp->info->parent_struct.signature));
+          g_variant_builder_add (&builder, "{sv}", cp->info->parent_struct.name, variant);
+          g_variant_unref (variant);
+          num_changes++;
+        }
+    }
+  if (num_changes > 0)
+    {
+      GList *connections, *ll;
+      GVariant *signal_variant;
+      signal_variant = g_variant_ref_sink (g_variant_new ("(sa{sv}as)", "com.rikor.ares.rikfan",
+                                           &builder, &invalidated_builder));
+      connections = g_dbus_interface_skeleton_get_connections (G_DBUS_INTERFACE_SKELETON (skeleton));
+      for (ll = connections; ll != NULL; ll = ll->next)
+        {
+          GDBusConnection *connection = ll->data;
+
+          g_dbus_connection_emit_signal (connection,
+                                         NULL, g_dbus_interface_skeleton_get_object_path (G_DBUS_INTERFACE_SKELETON (skeleton)),
+                                         "org.freedesktop.DBus.Properties",
+                                         "PropertiesChanged",
+                                         signal_variant,
+                                         NULL);
+        }
+      g_variant_unref (signal_variant);
+      g_list_free_full (connections, g_object_unref);
+    }
+  else
+    {
+      g_variant_builder_clear (&builder);
+      g_variant_builder_clear (&invalidated_builder);
+    }
+  g_list_free_full (skeleton->priv->changed_properties, (GDestroyNotify) _changed_property_free);
+  skeleton->priv->changed_properties = NULL;
+  skeleton->priv->changed_properties_idle_source = NULL;
+  g_mutex_unlock (&skeleton->priv->lock);
+  return FALSE;
+}
+
+static void
+_rikfan_schedule_emit_changed (RikfanSkeleton *skeleton, const _ExtendedGDBusPropertyInfo *info, guint prop_id, const GValue *orig_value)
+{
+  ChangedProperty *cp;
+  GList *l;
+  cp = NULL;
+  for (l = skeleton->priv->changed_properties; l != NULL; l = l->next)
+    {
+      ChangedProperty *i_cp = l->data;
+      if (i_cp->info == info)
+        {
+          cp = i_cp;
+          break;
+        }
+    }
+  if (cp == NULL)
+    {
+      cp = g_new0 (ChangedProperty, 1);
+      cp->prop_id = prop_id;
+      cp->info = info;
+      skeleton->priv->changed_properties = g_list_prepend (skeleton->priv->changed_properties, cp);
+      g_value_init (&cp->orig_value, G_VALUE_TYPE (orig_value));
+      g_value_copy (orig_value, &cp->orig_value);
+    }
+}
+
+static void
+rikfan_skeleton_notify (GObject      *object,
+  GParamSpec *pspec G_GNUC_UNUSED)
+{
+  RikfanSkeleton *skeleton = RIKFAN_SKELETON (object);
+  g_mutex_lock (&skeleton->priv->lock);
+  if (skeleton->priv->changed_properties != NULL &&
+      skeleton->priv->changed_properties_idle_source == NULL)
+    {
+      skeleton->priv->changed_properties_idle_source = g_idle_source_new ();
+      g_source_set_priority (skeleton->priv->changed_properties_idle_source, G_PRIORITY_DEFAULT);
+      g_source_set_callback (skeleton->priv->changed_properties_idle_source, _rikfan_emit_changed, g_object_ref (skeleton), (GDestroyNotify) g_object_unref);
+      g_source_set_name (skeleton->priv->changed_properties_idle_source, "[generated] _rikfan_emit_changed");
+      g_source_attach (skeleton->priv->changed_properties_idle_source, skeleton->priv->context);
+      g_source_unref (skeleton->priv->changed_properties_idle_source);
+    }
+  g_mutex_unlock (&skeleton->priv->lock);
+}
+
+static void
+rikfan_skeleton_set_property (GObject      *object,
+  guint         prop_id,
+  const GValue *value,
+  GParamSpec   *pspec)
+{
+  RikfanSkeleton *skeleton = RIKFAN_SKELETON (object);
+  g_assert (prop_id != 0 && prop_id - 1 < 1);
+  g_mutex_lock (&skeleton->priv->lock);
+  g_object_freeze_notify (object);
+  if (!_g_value_equal (value, &skeleton->priv->properties[prop_id - 1]))
+    {
+      if (g_dbus_interface_skeleton_get_connection (G_DBUS_INTERFACE_SKELETON (skeleton)) != NULL)
+        _rikfan_schedule_emit_changed (skeleton, _rikfan_property_info_pointers[prop_id - 1], prop_id, &skeleton->priv->properties[prop_id - 1]);
+      g_value_copy (value, &skeleton->priv->properties[prop_id - 1]);
+      g_object_notify_by_pspec (object, pspec);
+    }
+  g_mutex_unlock (&skeleton->priv->lock);
+  g_object_thaw_notify (object);
 }
 
 static void
@@ -1218,6 +1528,19 @@ rikfan_skeleton_init (RikfanSkeleton *skeleton)
 
   g_mutex_init (&skeleton->priv->lock);
   skeleton->priv->context = g_main_context_ref_thread_default ();
+  skeleton->priv->properties = g_new0 (GValue, 1);
+  g_value_init (&skeleton->priv->properties[0], G_TYPE_STRING);
+}
+
+static const gchar *
+rikfan_skeleton_get_mode_test (Rikfan *object)
+{
+  RikfanSkeleton *skeleton = RIKFAN_SKELETON (object);
+  const gchar *value;
+  g_mutex_lock (&skeleton->priv->lock);
+  value = g_value_get_string (&(skeleton->priv->properties[0]));
+  g_mutex_unlock (&skeleton->priv->lock);
+  return value;
 }
 
 static void
@@ -1228,6 +1551,12 @@ rikfan_skeleton_class_init (RikfanSkeletonClass *klass)
 
   gobject_class = G_OBJECT_CLASS (klass);
   gobject_class->finalize = rikfan_skeleton_finalize;
+  gobject_class->get_property = rikfan_skeleton_get_property;
+  gobject_class->set_property = rikfan_skeleton_set_property;
+  gobject_class->notify       = rikfan_skeleton_notify;
+
+
+  rikfan_override_properties (gobject_class, 1);
 
   skeleton_class = G_DBUS_INTERFACE_SKELETON_CLASS (klass);
   skeleton_class->get_info = rikfan_skeleton_dbus_interface_get_info;
@@ -1243,6 +1572,7 @@ rikfan_skeleton_class_init (RikfanSkeletonClass *klass)
 static void
 rikfan_skeleton_iface_init (RikfanIface *iface)
 {
+  iface->get_mode_test = rikfan_skeleton_get_mode_test;
 }
 
 /**

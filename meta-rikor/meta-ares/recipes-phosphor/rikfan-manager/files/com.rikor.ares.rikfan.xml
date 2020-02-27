@@ -8,5 +8,6 @@
 			<arg name="greeting" direction="in" type="s"/>
 			<arg name="response" direction="out" type="s"/>
 		</method>
+		<property name="ModeTest" type="s" access="readwrite"/>
 	</interface>
 </node>
