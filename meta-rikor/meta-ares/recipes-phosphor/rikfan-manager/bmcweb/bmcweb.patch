@@ -1,0 +1,19 @@
+diff --git a/include/openbmc_dbus_rest.hpp b/include/openbmc_dbus_rest.hpp
+index af6451d..74716a7 100644
+--- a/include/openbmc_dbus_rest.hpp
++++ b/include/openbmc_dbus_rest.hpp
+@@ -2034,6 +2034,14 @@ template <typename... Middlewares> void requestRoutes(Crow<Middlewares...> &app)
+             handleDBusUrl(req, res, objectPath);
+         });
+ 
++    BMCWEB_ROUTE(app, "/com/rikor/<path>")
++        .requires({"Login"})
++        .methods("POST"_method)([](const crow::Request &req, crow::Response &res,
++                                  const std::string &path) {
++            std::string objectPath = "/com/rikor/" + path;
++            handleDBusUrl(req, res, objectPath);
++        });
++
+     BMCWEB_ROUTE(app, "/xyz/<path>")
+         .requires({"ConfigureComponents", "ConfigureManager"})
+         .methods("PUT"_method, "POST"_method, "DELETE"_method)(

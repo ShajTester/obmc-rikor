@@ -42,7 +42,7 @@ FILES_${PN}_remove = "${libdir}/lib*.so.* ${libdir}/*"
 python do_emit_env() {
     path = d.getVar('STAGING_DIR_NATIVE', True) + \
         d.getVar('service_dir', True)
-    services = []
+    services = ['com.rikor']
     for s in os.listdir(path):
         services.append('.'.join(s.split('-')))
 
