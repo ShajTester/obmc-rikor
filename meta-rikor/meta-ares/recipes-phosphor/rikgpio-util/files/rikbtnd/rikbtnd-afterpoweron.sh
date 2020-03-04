@@ -1,7 +1,5 @@
 #!/bin/sh
 
-logger afterpoweron
-
 sleep 2
 
 if [ ! -f /sys/bus/peci/devices/peci-0/0-30/peci-cputemp.0/hwmon/hwmon*/temp1_input ]; then
@@ -18,6 +16,6 @@ else
 	logger "exist peci-client 0x31"
 fi
 
-echo -n "on" > /tmp/rikfan.pipe
-
-exit 0
+#echo -n "on" > /tmp/rikfan.pipe
+# rikfan перешел на dbus
+busctl call xyz.openbmc_project.ares.rikfan /xyz/openbmc_project/ares/rikfan xyz.openbmc_project.ares.rikfan RestPID

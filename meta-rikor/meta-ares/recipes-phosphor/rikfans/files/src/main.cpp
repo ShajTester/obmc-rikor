@@ -19,16 +19,23 @@
 
 #include <filesystem>
 
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+// #include <unistd.h>
+// #include <sys/socket.h>
+// #include <sys/un.h>
+// #include <sys/stat.h>
+// #include <fcntl.h>
 
 #include <nlohmann/json.hpp>
 
-#include "ec/pid.hpp"
-#include "util.hpp"
+#include "zone.hpp"
+#include "fan.h"
+
+/// gDBus
+#include <stdio.h>
+#include <stdlib.h>
+#include <glib.h>
+#include "rikfan-manager.h"
+
 
 namespace fs = std::filesystem;
 using namespace std::literals::chrono_literals;
@@ -36,305 +43,131 @@ using json = nlohmann::json;
 
 // #define RIKFAN_DEBUG
 
-
-std::mutex              g_lock;
-std::condition_variable g_signal;
-bool                    g_done;
-bool                    cmd_quit;
+static 	std::vector<std::unique_ptr<Zone>> zones;
 
 
-void get_sensor_path(std::string &result, const std::string &str)
+void setFanmode(unsigned int mode)
 {
-	auto pos = str.find('*');
-	if (pos == std::string::npos)
+	if (mode > 3)
+		mode = 0;   // 0 - автоматический режим
+
+	if (mode == 0)
 	{
-		result = str;
-		return;
+		for (const auto &z : zones)
+			z->command("auto");
 	}
-
-	auto ppos = str.rfind('/', pos);
-	auto fpos = str.find('/', pos);
-	try 
+	else
 	{
-		for (const auto &p : fs::directory_iterator(str.substr(0, ppos) + "/hwmon/"))
-		{
-			result = (p.path() / str.substr(++fpos)).string();
-			break;
-		}
+		for (const auto &z : zones)
+			z->command("manual");
+		// Вручную установить значения PWM
+		setPWM(mode);
 	}
-	catch (std::exception &e)
-	{
-		result = str;
-	}
-}
-
-
-class Zone
-{
-private:
-	static const constexpr long long loop_min_delay = 300;
-	static const constexpr double stop_output_const = 130.0;
-	static const constexpr long margin_error_read_temp = 100000;
-
-public:
-
-	Zone() = delete;
-	Zone(Zone &&that) = delete;
-	void operator=(const Zone&) = delete;
-
-	Zone(std::string n,
-		 std::string t,
-	     ec::pidinfo &pidinfo_initial,
-	     std::vector<std::string> &s,
-	     std::vector<std::string> &f,
-	     double sp,
-	     long long ms
-	    ) : sensors(s), pwms(f), name(n), type(t), setpt(sp)
-	{
-		pmainthread = nullptr;
-		if (ms < loop_min_delay)
-			millisec = loop_min_delay;
-		else
-			millisec = ms;
-
-		if(type == "one")
-			error_read_temp = 0;
-		else
-			error_read_temp = margin_error_read_temp;
-
-		initializePIDStruct(&pid_info, pidinfo_initial);
-	}
-
-	~Zone()
-	{
-		stop();
-	}
-
-	void start()
-	{
-		if (pmainthread != nullptr)
-			stop();
-		stop_flag = false;
-		manualmode = false;
-#ifdef RIKFAN_DEBUG
-		sample_time = std::chrono::system_clock::now();
-#endif
-		pmainthread = std::make_unique<std::thread>(&Zone::zone_control_loop, this);
-	}
-
-	void stop()
-	{
-		if (pmainthread != nullptr)
-		{
-			stop_flag = true;
-			pmainthread->join();
-			pmainthread = nullptr;
-		}
-	}
-
-	void command(const char *cmd)
-	{
-		if (std::strcmp(cmd, "manual") == 0)
-		{
-			manualmode = true;
-		}
-		else if (std::strcmp(cmd, "auto") == 0)
-		{
-			manualmode = false;
-		}
-		else if (std::strcmp(cmd, "on") == 0)
-		{
-			pid_info.lastOutput = pid_info.outLim.min;
-		}
-	}
-
-
-private:
-	bool manualmode;
-	bool stop_flag;
-	long long millisec;
-	std::unique_ptr<std::thread> pmainthread;
-
-	std::string name;
-	std::string type;
-	ec::pid_info_t pid_info;
-	double setpt;
-	std::vector<std::string> sensors;
-	std::vector<std::string> pwms;
-	long error_read_temp;
-
-#ifdef RIKFAN_DEBUG
-	decltype(std::chrono::system_clock::now()) sample_time;
-#endif
-
-	double processInputs()
-	{
-		std::string actual_path;
-		std::ifstream ifs;
-		double retval = 0;
-		for (const auto &str : sensors)
-		{
-			long val;
-			get_sensor_path(actual_path, str);
-			ifs.open(actual_path);
-			if (ifs.is_open())
-			{
-				ifs >> val;
-				if (!ifs.good())
-				{
-					val = error_read_temp;
-				}
-				ifs.close();
-			}
-			else
-			{
-				val = error_read_temp;
-			}
-			retval = std::max(retval, (static_cast<double>(val) / 1000.0));
-		}
-
-		// for type == "one"
-		if(retval == 0)
-			retval = margin_error_read_temp;
-
-		return retval;
-	}
-
-	double processPID(double in)
-	{
-		return ec::pid(&pid_info, in, setpt);
-	}
-
-	void processOutputs(double in)
-	{
-		std::string actual_path;
-		std::ofstream ofs;
-		int val = static_cast<int>(std::round(in));
-		for (const auto &str : pwms)
-		{
-			get_sensor_path(actual_path, str);
-			ofs.open(actual_path);
-			if (ofs.is_open())
-			{
-				ofs << val;
-				ofs.close();
-			}
-		}
-	}
-
-	static void zone_control_loop(Zone *zone)
-	{
-		auto delay = std::chrono::milliseconds(zone->millisec);
-		while (!zone->stop_flag)
-		{
-			if (zone->manualmode)
-			{
-				std::this_thread::sleep_for(delay);
-			}
-			else
-			{
-				auto input = zone->processInputs();
-				auto output = zone->processPID(input);
-				zone->processOutputs(output);
-
-#ifdef RIKFAN_DEBUG
-
-				auto new_sample = std::chrono::system_clock::now();
-
-				std::ofstream ofs;
-				ofs.open(fs::path("/tmp/rikfan") / zone->name);
-				if (ofs.is_open())
-				{
-					ofs << "setpoint: " << zone->setpt;
-					ofs << "\ninput:    " << input;
-					ofs << "\noutput:   " << output;
-					std::chrono::duration<double> diff = new_sample - zone->sample_time;
-					zone->sample_time = new_sample;
-					ofs << "\nsample_time: " << diff.count();
-					ofs << "\n\n";
-					dumpPIDStruct(ofs, &zone->pid_info);
-					ofs << std::endl;
-					ofs.close();
-				}
-#endif // RIKFAN_DEBUG		
-
-				std::this_thread::sleep_for(delay);
-			}
-		}
-		zone->processOutputs(stop_output_const);
-	}
-
-};
-
-static const constexpr auto myfifo = "/tmp/rikfan.pipe";
-
-void *start_pipe(std::vector<std::unique_ptr<Zone>> *zones)
-{
-	int fd1;
-	int rc;
-	char str1[81];
-
-	// Creating the named file(FIFO)
-	// mkfifo(<pathname>,<permission>)
-	while(mkfifo(myfifo, 0644))
-	{
-		syslog(LOG_ERR, "Can not create %s. Errno %d", myfifo, errno);
-		unlink(myfifo);
-		// fs::path pfifo { myfifo };
-		if(fs::exists(myfifo))
-			fs::remove(myfifo);
-		sleep(5);
-	}
-
-	while (1)
-	{
-		// First open in read only and read
-		fd1 = open(myfifo, O_RDONLY);
-		rc = read(fd1, str1, 80);
-		close(fd1);
-		if (rc == -1)
-		{
-			syslog(LOG_ERR, "Read pipe error");
-		}
-		else if (rc == 0)
-		{
-		}
-		else
-		{
-			str1[rc] = 0;
-#ifdef RIKFAN_DEBUG
-			syslog(LOG_INFO, "Read string from pipe: <%s>", str1);
-#endif
-			if (std::strcmp(str1, "quit") == 0)
-			{
-				break;
-			}
-			else
-			{
-				std::for_each(zones->begin(), zones->end(), [str1](auto & zone) { zone->command(str1); });
-			}
-		}
-	}
-
-	unlink(myfifo);
-	return nullptr;
 }
 
 
 
 
-void signalHandler( int signum )
+static gboolean on_handle_apply_mode (XyzOpenbmc_projectAresRikfan *interface, GDBusMethodInvocation *invocation,
+                                      const gchar *greeting, gpointer user_data)
 {
-	syslog(LOG_INFO, "Signal %d reached", signum);
-	g_done = true;
-	g_signal.notify_all();
+	gchar *response;
+	unsigned int mode = 0;
+	auto cur_mode = xyz_openbmc_project_ares_rikfan_get_fan_mode(interface);
+	// syslog(LOG_INFO, "Was %s   -   new %s", cur_mode, greeting);
+
+	try
+	{
+		mode = std::stoi(greeting);
+	}
+	catch (const std::exception &e)
+	{
+		mode = 0;
+	}
+
+	setFanmode(mode);
+	response = g_strdup(greeting);
+	xyz_openbmc_project_ares_rikfan_set_fan_mode(interface, response);
+	xyz_openbmc_project_ares_rikfan_complete_apply_mode (interface, invocation, response);
+	g_free (response);
+
+	return TRUE;
 }
+
+
+static gboolean on_handle_reset_pid (XyzOpenbmc_projectAresRikfan *interface, GDBusMethodInvocation *invocation,
+                                     const gchar *greeting, gpointer user_data)
+{
+	for (const auto &z : zones)
+		z->command("on");
+	xyz_openbmc_project_ares_rikfan_complete_reset_pid (interface, invocation);
+	return TRUE;
+}
+
+
+
+
+static void on_bus_acquired (GDBusConnection *connection,
+                             const gchar     *name,
+                             gpointer         user_data)
+{
+	XyzOpenbmc_projectAresRikfan *interface;
+	GError *error;
+
+	/* This is where we'd export some objects on the bus */
+	syslog(LOG_INFO, "on_bus_acquired %s on the session bus\n", name);
+
+
+	gchar *conn_name;
+	g_object_get(connection, "unique-name", &conn_name, NULL);
+	syslog(LOG_INFO, "%s\n", conn_name);
+	g_free(conn_name);
+
+	interface = xyz_openbmc_project_ares_rikfan_skeleton_new();
+	g_signal_connect (interface, "handle-apply-mode", G_CALLBACK (on_handle_apply_mode), NULL);
+	g_signal_connect (interface, "handle-reset-pid", G_CALLBACK (on_handle_reset_pid), NULL);
+	error = NULL;
+	if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (interface), connection, "/xyz/openbmc_project/ares/rikfan", &error))
+	{
+		g_print("ERROR %s\n", error->message);
+	}
+	// gchar * fanmode;
+	xyz_openbmc_project_ares_rikfan_set_fan_mode(interface, "0");
+}
+
+static void on_name_lost (GDBusConnection *connection,
+                          const gchar     *name,
+                          gpointer         user_data)
+{
+	syslog(LOG_ERR, "on_name_lost %s on the session bus\n", name);
+}
+
+
+static void on_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
+{
+	// syslog(LOG_INFO, "on_name_acquired %s on the session bus\n", name);
+}
+
+
+
+
+static 	GMainLoop *loop;
+
+/*
+ * On SIGINT, exit the main loop
+ */
+static void sig_handler(int signo)
+{
+	if (signo == SIGINT)
+	{
+		g_main_loop_quit(loop);
+	}
+}
+
 
 
 int main(int argc, char const *argv[])
 {
-	std::vector<std::unique_ptr<Zone>> zones;
-
 	openlog("rikfan", LOG_CONS, LOG_USER);
 
 	{
@@ -415,41 +248,33 @@ int main(int argc, char const *argv[])
 	}
 #endif // RIKFAN_DEBUG
 
-	// Для этого создаем файловый сокет '/tmp/rikfan.pipe'
-	// В этот файл могут быть записаны следующие команды:
-	//    * on
-	//    * auto
-	//    * manual
-
-	auto cmd_thread = std::thread(&start_pipe, &zones);
-
 	// Запускаем циклы управления вентиляторами по зонам
 	for (auto &z : zones)
 		z->start();
 
 	syslog(LOG_INFO, "Started control loop for %ld zones", zones.size());
 
-	g_done = false;
+	// set up the SIGINT signal handler
+	if (signal(SIGINT, &sig_handler) == SIG_ERR)
+	{
+		syslog(LOG_INFO, "Failed to register SIGINT handler, quitting...\n");
+		exit(EXIT_FAILURE);
+	}
 
-	std::signal(SIGINT, signalHandler);
-	std::signal(SIGABRT, signalHandler);
-	std::signal(SIGCONT, signalHandler);
-	std::signal(SIGSTOP, signalHandler);
-	std::signal(SIGKILL, signalHandler);
-	std::signal(SIGQUIT, signalHandler);
-	std::signal(SIGTERM, signalHandler);
+	loop = g_main_loop_new (NULL, FALSE);
 
-	std::unique_lock<std::mutex> lock(g_lock);
-	while (!g_done)
-		g_signal.wait(lock);
+	// guint bus_id = g_bus_own_name(G_BUS_TYPE_SESSION, "com.rikor", G_BUS_NAME_OWNER_FLAGS_NONE, on_bus_acquired,
+	//                on_name_acquired, on_name_lost, NULL, NULL);
+	guint bus_id = g_bus_own_name(G_BUS_TYPE_SYSTEM, "xyz.openbmc_project.ares.rikfan", G_BUS_NAME_OWNER_FLAGS_NONE, on_bus_acquired,
+	                              on_name_acquired, on_name_lost, NULL, NULL);
 
+	// syslog(LOG_INFO, "Initial PID: %d\n", getpid());
+	// syslog(LOG_INFO, "bus_id %u\n", bus_id);
 
+	g_main_loop_run (loop);
+	g_bus_unown_name(bus_id);
 
-	auto fd1 = open(myfifo, O_WRONLY);
-	write(fd1, "quit\0", 5);
-	close(fd1);
-	cmd_thread.join();
-
+	g_main_loop_unref(loop);
 
 	syslog(LOG_INFO, "Stop zones control loop. (FAN)");
 
