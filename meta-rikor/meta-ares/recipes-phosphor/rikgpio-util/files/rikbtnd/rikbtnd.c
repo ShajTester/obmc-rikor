@@ -63,6 +63,7 @@ int power_state_store()
 
 #define adc_file_name "/sys/bus/iio/devices/iio:device0/in_voltage0_raw"
 
+
 int power_command()
 {
 	gpio_st g;
@@ -110,6 +111,9 @@ int power_command()
 	return 0;
 }
 
+
+
+
 int PCH_command()
 {
 	gpio_st g;
@@ -136,6 +140,8 @@ int PCH_command()
 
 	return 0;
 }
+
+
 
 int reset_command()
 {
