@@ -30,12 +30,21 @@
 #include <openbmc/gpio.h>
 
 
+/// gDBus
+#include <stdio.h>
+#include <stdlib.h>
+#include <glib.h>
+#include "rikbtnd-manager.h"
+
+
+
 pthread_mutex_t web_mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
 static void gpio_event_handle(gpio_poll_st *gp);
 
 // GPIO table to be monitored when MB is ON
-static gpio_poll_st g_gpios[] = {
+static gpio_poll_st g_gpios[] =
+{
 	// {{gpio, fd}, edge, gpioValue, call-back function, GPIO description}
 	{{0, 0}, GPIO_EDGE_FALLING, 0, gpio_event_handle, "GPIOD5", "FP_ID_BTN" },
 	{{0, 0}, GPIO_EDGE_FALLING, 0, gpio_event_handle, "GPIOR7", "FP_PWR_BTN_MUX_N"},
@@ -99,8 +108,7 @@ int power_command()
 		gpio_set(g.gs_gpio, GPIO_VALUE_LOW);
 		gpio_change_direction(&g, GPIO_DIRECTION_IN);
 
-		// sprintf(blink_cmd, "/usr/local/bin/rikbtnd-afterpoweron.sh &");
-		system("/usr/local/bin/rikbtnd-afterpoweron.sh &");
+		system("/usr/bin/rikbtnd-afterpoweron.sh &");
 
 		sprintf(blink_cmd, "/usr/bin/ledblink-1.0 %d 10 &", gpio_num("GPIOQ7"));
 		// syslog(LOG_INFO, blink_cmd);
@@ -181,7 +189,8 @@ static void gpio_event_handle(gpio_poll_st *gp)
 	long long tt;
 
 	if (gp->gs.gs_gpio == g_gpios[0].gs.gs_gpio)
-	{	// Front panel ID button
+	{
+		// Front panel ID button
 		tt = get_nanos();
 		if ((tt - id_last_time) > 600)
 		{
@@ -194,9 +203,11 @@ static void gpio_event_handle(gpio_poll_st *gp)
 		id_last_time = tt;
 	}
 	else if (gp->gs.gs_gpio == g_gpios[1].gs.gs_gpio)
-	{	// Front panel POWER button
+	{
+		// Front panel POWER button
 		if (!PCH_cmd_flag)
-		{	// Нет подачи сигнала на PCH
+		{
+			// Нет подачи сигнала на PCH
 			tt = get_nanos();
 			if ((tt - pwrbtn_last_time) > 600)
 			{
@@ -210,7 +221,8 @@ static void gpio_event_handle(gpio_poll_st *gp)
 		}
 	}
 	else if (gp->gs.gs_gpio == g_gpios[3].gs.gs_gpio)
-	{	// Front panel POWER button
+	{
+		// Front panel POWER button
 		tt = get_nanos();
 		if ((tt - rstbtn_last_time) > 600)
 		{
@@ -236,7 +248,7 @@ void *start_pipe(void *ptr)
 
 	// Creating the named file(FIFO)
 	// mkfifo(<pathname>,<permission>)
-	while(mkfifo(myfifo, 0644))
+	while (mkfifo(myfifo, 0644))
 	{
 		syslog(LOG_ERR, "Can not create %s. Errno %d", myfifo, errno);
 		unlink(myfifo);
@@ -270,10 +282,10 @@ void *start_pipe(void *ptr)
 
 		// Now open in write mode and write
 		// string taken from user.
-		fd1 = open(myfifo,O_WRONLY);
+		fd1 = open(myfifo, O_WRONLY);
 		// power_state соответствует состоянию до полачи команды питания.
 		// А нужно передать состояние после подачи команды питания.
-		if(power_state)
+		if (power_state)
 			write(fd1, "off\0", 3);
 		else
 			write(fd1, "on\0", 4);
@@ -284,67 +296,164 @@ void *start_pipe(void *ptr)
 }
 
 
-static const char pidfilename[] = "/var/run/rikbtnd.pid";
+
+
+
+
+
+
+static gboolean on_handle_host_power (XyzOpenbmc_projectAresRikbtnd *interface, GDBusMethodInvocation *invocation,
+                                      const gchar *greeting, gpointer user_data)
+{
+	// unsigned int mode = 0;
+	// auto cur_mode = xyz_openbmc_project_ares_rikfan_get_fan_mode(interface);
+	// syslog(LOG_INFO, "Was %s   -   new %s", cur_mode, greeting);
+
+	// try
+	// {
+	// 	mode = std::stoi(greeting);
+	// }
+	// catch (const std::exception &e)
+	// {
+	// 	mode = 0;
+	// }
+
+	// setFanmode(mode);
+	// response = g_strdup(greeting);
+	// xyz_openbmc_project_ares_rikfan_set_fan_mode(interface, response);
+	// xyz_openbmc_project_ares_rikfan_complete_apply_mode (interface, invocation, response);
+	// g_free (response);
+
+
+
+	gchar *response;
+
+	power_command();
+	PCH_command();
+
+	response = g_strdup(power_state ? "on" : "off");
+	xyz_openbmc_project_ares_rikbtnd_set_host_power_mode(interface, response);
+
+	return TRUE;
+}
+
+
+
+static void on_bus_acquired (GDBusConnection *connection,
+                             const gchar     *name,
+                             gpointer         user_data)
+{
+	XyzOpenbmc_projectAresRikbtnd *interface;
+	GError *error;
+
+	/* This is where we'd export some objects on the bus */
+	syslog(LOG_INFO, "on_bus_acquired %s\n", name);
+
+
+	gchar *conn_name;
+	g_object_get(connection, "unique-name", &conn_name, NULL);
+	syslog(LOG_INFO, "%s\n", conn_name);
+	g_free(conn_name);
+
+	interface = xyz_openbmc_project_ares_rikbtnd_skeleton_new();
+	g_signal_connect (interface, "handle-host-power", G_CALLBACK (on_handle_host_power), NULL);
+	// g_signal_connect (interface, "host-power-mode", G_CALLBACK (on_handle_host_power_mode), NULL);
+	error = NULL;
+	if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (interface), connection, "/xyz/openbmc_project/ares/rikbtnd", &error))
+	{
+		g_print("ERROR %s\n", error->message);
+	}
+	xyz_openbmc_project_ares_rikbtnd_set_host_power_mode(interface, "0");
+}
+
+
+static void on_name_lost (GDBusConnection *connection,
+                          const gchar     *name,
+                          gpointer         user_data)
+{
+	syslog(LOG_ERR, "on_name_lost %s on the session bus\n", name);
+}
+
+
+static void on_name_acquired(GDBusConnection *connection, const gchar *name, gpointer user_data)
+{
+	// syslog(LOG_INFO, "on_name_acquired %s on the session bus\n", name);
+}
+
+
+
+
+
+
+
+
+
+
+void gpio_poll_thread()
+{
+	gpio_poll_open(g_gpios, g_count);
+	gpio_poll(g_gpios, g_count, -1);
+}
+
+
+static 	GMainLoop *loop;
+
+
+/*
+ * On SIGINT, exit the main loop
+ */
+static void sig_handler(int signo)
+{
+	if (signo == SIGINT)
+	{
+		g_main_loop_quit(loop);
+	}
+}
+
+// static const char pidfilename[] = "/var/run/rikbtnd.pid";
 
 int main(int argc, char **argv)
 {
-	int rc;
-	int pid_file;
+	// int rc;
+	// int pid_file;
 
 	pthread_t cmd_thread;
-	// pthread_t tim_thread;
+	// // pthread_t tim_thread;
 
 	openlog("rikbtnd", LOG_CONS, LOG_DAEMON);
+	syslog(LOG_INFO, "rikbtnd daemon started. ver 0.6");
 
-	pid_file = open(pidfilename, O_CREAT | O_RDWR, 0666);
-	rc = flock(pid_file, LOCK_EX | LOCK_NB);
-	if (rc)
+	sleep(10);
+
+	gpio_set(gpio_num("GPIOQ7"), GPIO_VALUE_LOW);
+
+	PCH_cmd_flag = false;
+
+	// set up the SIGINT signal handler
+	if (signal(SIGINT, &sig_handler) == SIG_ERR)
 	{
-		if (EWOULDBLOCK == errno)
-		{
-			syslog(LOG_ERR, "Another rikbtnd instance is running...");
-			exit(-1);
-		}
-	}
-	else
-	{
-		daemon(0, 1);
-
-		char tstr[32];
-		sprintf(tstr, "%d", getpid());
-		write(pid_file, tstr, strlen(tstr));
-		syslog(LOG_INFO, "rikbtnd daemon started. ver 0.5. PID %s", tstr);
-
-		sleep(10);
-
-		gpio_set(gpio_num("GPIOQ7"), GPIO_VALUE_LOW);
-
-		PCH_cmd_flag = false;
-
-		// power_state = get_power_state();
-		// if(power_state)
-		// 	power_command();
-
-		rc = pthread_create(&cmd_thread, NULL, start_pipe, NULL);
-		if (rc)
-			syslog(LOG_ERR, "cmd_thread pthread_create error.");
-
-		// rc = pthread_create(&tim_thread, NULL, flasher_timer, NULL);
-		// if (rc)
-		// 	syslog(LOG_ERR, "tim_thread pthread_create error.");
-
-		gpio_poll_open(g_gpios, g_count);
-		gpio_poll(g_gpios, g_count, -1);
-		gpio_poll_close(g_gpios, g_count);
-
-		// pthread_join(tim_thread, NULL);
-		pthread_join(cmd_thread, NULL);
-
-		syslog(LOG_ERR, "rikbtnd closed ...");
+		syslog(LOG_INFO, "Failed to register SIGINT handler, quitting...\n");
+		exit(EXIT_FAILURE);
 	}
 
-	unlink(pidfilename);
-	flock(pid_file, LOCK_UN);
+	pthread_create(&cmd_thread, NULL, gpio_poll_thread, NULL);
+
+	loop = g_main_loop_new (NULL, FALSE);
+
+	// guint bus_id = g_bus_own_name(G_BUS_TYPE_SESSION, "com.rikor", G_BUS_NAME_OWNER_FLAGS_NONE, on_bus_acquired,
+	//                on_name_acquired, on_name_lost, NULL, NULL);
+	guint bus_id = g_bus_own_name(G_BUS_TYPE_SYSTEM, "xyz.openbmc_project.ares.rikbtnd",
+	                              G_BUS_NAME_OWNER_FLAGS_NONE, on_bus_acquired,
+	                              on_name_acquired, on_name_lost, NULL, NULL);
+
+	syslog(LOG_INFO, "Initial PID: %d\n", getpid());
+
+	g_main_loop_run (loop);
+	g_main_loop_unref(loop);
+	g_bus_unown_name(bus_id);
+
+	syslog(LOG_ERR, "rikbtnd closed ...");
+	gpio_poll_close(g_gpios, g_count);
 
 	return 0;
 }

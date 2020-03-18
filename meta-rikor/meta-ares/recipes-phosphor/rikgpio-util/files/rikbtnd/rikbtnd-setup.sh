@@ -2,5 +2,5 @@
 
 
 echo "Starting rikbtnd ..."
-exec /usr/local/bin/rikbtnd
+exec /usr/bin/rikbtnd
 

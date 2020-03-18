@@ -1,0 +1,9 @@
+<node>
+	<interface name="xyz.openbmc_project.ares.rikbtnd">
+		<method name="HostPower">
+			<arg name="greeting" direction="in" type="s"/>
+			<arg name="response" direction="out" type="s"/>
+		</method>
+		<property name="HostPowerMode" type="s" access="read"/>
+	</interface>
+</node>

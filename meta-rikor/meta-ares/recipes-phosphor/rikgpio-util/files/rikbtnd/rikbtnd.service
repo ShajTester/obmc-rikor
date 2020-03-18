@@ -4,10 +4,9 @@ After=sysinit.target
 # After=systemd-hostnamed.service
 
 [Service]
-Type=forking
-PIDFile=/run/rikbtnd.pid
+Type=simple
 ExecStartPre=/usr/local/bin/rikgpio
-ExecStart=/usr/local/bin/rikbtnd-setup.sh
+ExecStart=/usr/bin/rikbtnd-setup.sh
 
 [Install]
 WantedBy=multi-user.target
