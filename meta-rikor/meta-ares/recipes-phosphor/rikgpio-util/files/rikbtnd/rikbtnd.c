@@ -35,10 +35,15 @@
 #include <stdlib.h>
 #include <glib.h>
 #include "rikbtnd-manager.h"
+#include "identify-manager.h"
 
+
+#define POWER_OFF_STR "Off"
+#define POWER_ON_STR  "Running"
 
 
 pthread_mutex_t web_mutex1 = PTHREAD_MUTEX_INITIALIZER;
+XyzOpenbmc_projectAresRikbtnd *rikbtnd_interface;
 
 static void gpio_event_handle(gpio_poll_st *gp);
 
@@ -115,6 +120,9 @@ int power_command()
 		system(blink_cmd);
 	}
 
+	if (rikbtnd_interface != NULL)
+		xyz_openbmc_project_ares_rikbtnd_set_host_power_mode(rikbtnd_interface, power_state ? POWER_OFF_STR : POWER_ON_STR);
+
 	pthread_mutex_unlock(&web_mutex1);
 	return 0;
 }
@@ -168,6 +176,54 @@ int reset_command()
 	return 0;
 }
 
+
+void on_id_pressed_hundler()
+{
+	XyzOpenbmc_projectLedPhysical *proxy;
+	GError *error;
+	const gchar *response;
+
+	syslog(LOG_INFO, "ID button pressed");
+
+	error = NULL;
+	proxy = xyz_openbmc_project_led_physical_proxy_new_for_bus_sync (
+	            G_BUS_TYPE_SYSTEM,
+	            G_DBUS_PROXY_FLAGS_NONE,
+	            "xyz.openbmc_project.LED.Controller.identify",    /* bus name */
+	            "/xyz/openbmc_project/led/physical/identify",     /* object */
+	            NULL,                                             /* GCancellable* */
+	            &error);
+	/* do stuff with proxy */
+
+	if(error != NULL)
+	{
+		syslog(LOG_ERR, "ERROR %s", error->message);
+	}
+
+	if(proxy != NULL)
+	{
+		response = xyz_openbmc_project_led_physical_get_state(proxy);
+		syslog(LOG_INFO, "response is \"%s\"", response);
+		if(g_strcmp0(response, "xyz.openbmc_project.Led.Physical.Action.Off") == 0)
+		{
+			xyz_openbmc_project_led_physical_set_state(proxy, "xyz.openbmc_project.Led.Physical.Action.Blink");
+		}
+		else
+		{
+			xyz_openbmc_project_led_physical_set_state(proxy, "xyz.openbmc_project.Led.Physical.Action.Off");
+		}
+	}
+	else
+	{
+		syslog(LOG_ERR, "proxy == NULL");
+	}
+
+	// g_free(response);
+	g_object_unref (proxy);
+}
+
+
+
 // Отсюда
 // https://stackoverflow.com/a/36095407
 static long long get_nanos(void)
@@ -194,11 +250,14 @@ static void gpio_event_handle(gpio_poll_st *gp)
 		tt = get_nanos();
 		if ((tt - id_last_time) > 600)
 		{
-			if (gpio_get(g_gpios[0].gs.gs_gpio) == GPIO_VALUE_LOW)
-			{
-				syslog(LOG_INFO, "ID button pressed");
-				gpio_set(gpio_num("GPIOD6"), GPIO_VALUE_HIGH);
-			}
+			// if (gpio_get(g_gpios[0].gs.gs_gpio) == GPIO_VALUE_LOW)
+			// {
+			// 	syslog(LOG_INFO, "ID button pressed");
+			// 	gpio_set(gpio_num("GPIOD6"), GPIO_VALUE_HIGH);
+			// }
+
+			on_id_pressed_hundler();
+
 		}
 		id_last_time = tt;
 	}
@@ -237,63 +296,63 @@ static void gpio_event_handle(gpio_poll_st *gp)
 }
 
 
-void *start_pipe(void *ptr)
-{
-	char str1[81];
-	int fd1;
-	int rc;
+// void *start_pipe(void *ptr)
+// {
+// 	char str1[81];
+// 	int fd1;
+// 	int rc;
 
-	// FIFO file path
-	char * myfifo = "/tmp/rikbtnd.pipe";
+// 	// FIFO file path
+// 	char * myfifo = "/tmp/rikbtnd.pipe";
 
-	// Creating the named file(FIFO)
-	// mkfifo(<pathname>,<permission>)
-	while (mkfifo(myfifo, 0644))
-	{
-		syslog(LOG_ERR, "Can not create %s. Errno %d", myfifo, errno);
-		unlink(myfifo);
+// 	// Creating the named file(FIFO)
+// 	// mkfifo(<pathname>,<permission>)
+// 	while (mkfifo(myfifo, 0644))
+// 	{
+// 		syslog(LOG_ERR, "Can not create %s. Errno %d", myfifo, errno);
+// 		unlink(myfifo);
 
-		sleep(5);
-	}
+// 		sleep(5);
+// 	}
 
-	while (1)
-	{
-		// First open in read only and read
-		fd1 = open(myfifo, O_RDONLY);
-		rc = read(fd1, str1, 80);
-		close(fd1);
-		if (rc == -1)
-		{
-			syslog(LOG_ERR, "Read pipe error");
-		}
-		else if (rc == 0)
-		{
-		}
-		else
-		{
-			str1[rc] = 0;
-			syslog(LOG_INFO, "Read string from pipe: %s", str1);
-			if (strcmp(str1, "switch power"))
-			{
-				power_command();
-				PCH_command();
-			}
-		}
+// 	while (1)
+// 	{
+// 		// First open in read only and read
+// 		fd1 = open(myfifo, O_RDONLY);
+// 		rc = read(fd1, str1, 80);
+// 		close(fd1);
+// 		if (rc == -1)
+// 		{
+// 			syslog(LOG_ERR, "Read pipe error");
+// 		}
+// 		else if (rc == 0)
+// 		{
+// 		}
+// 		else
+// 		{
+// 			str1[rc] = 0;
+// 			syslog(LOG_INFO, "Read string from pipe: %s", str1);
+// 			if (strcmp(str1, "switch power"))
+// 			{
+// 				power_command();
+// 				PCH_command();
+// 			}
+// 		}
 
-		// Now open in write mode and write
-		// string taken from user.
-		fd1 = open(myfifo, O_WRONLY);
-		// power_state соответствует состоянию до полачи команды питания.
-		// А нужно передать состояние после подачи команды питания.
-		if (power_state)
-			write(fd1, "off\0", 3);
-		else
-			write(fd1, "on\0", 4);
-		close(fd1);
-	}
+// 		// Now open in write mode and write
+// 		// string taken from user.
+// 		fd1 = open(myfifo, O_WRONLY);
+// 		// power_state соответствует состоянию до полачи команды питания.
+// 		// А нужно передать состояние после подачи команды питания.
+// 		if (power_state)
+// 			write(fd1, "off\0", 3);
+// 		else
+// 			write(fd1, "on\0", 4);
+// 		close(fd1);
+// 	}
 
-	unlink(myfifo);
-}
+// 	unlink(myfifo);
+// }
 
 
 
@@ -305,34 +364,15 @@ void *start_pipe(void *ptr)
 static gboolean on_handle_host_power (XyzOpenbmc_projectAresRikbtnd *interface, GDBusMethodInvocation *invocation,
                                       const gchar *greeting, gpointer user_data)
 {
-	// unsigned int mode = 0;
-	// auto cur_mode = xyz_openbmc_project_ares_rikfan_get_fan_mode(interface);
-	// syslog(LOG_INFO, "Was %s   -   new %s", cur_mode, greeting);
-
-	// try
-	// {
-	// 	mode = std::stoi(greeting);
-	// }
-	// catch (const std::exception &e)
-	// {
-	// 	mode = 0;
-	// }
-
-	// setFanmode(mode);
-	// response = g_strdup(greeting);
-	// xyz_openbmc_project_ares_rikfan_set_fan_mode(interface, response);
-	// xyz_openbmc_project_ares_rikfan_complete_apply_mode (interface, invocation, response);
-	// g_free (response);
-
-
-
 	gchar *response;
 
 	power_command();
 	PCH_command();
 
-	response = g_strdup(power_state ? "on" : "off");
+	response = g_strdup(power_state ? POWER_OFF_STR : POWER_ON_STR);
 	xyz_openbmc_project_ares_rikbtnd_set_host_power_mode(interface, response);
+	xyz_openbmc_project_ares_rikbtnd_complete_host_power(interface, invocation, response);
+	g_free(response);
 
 	return TRUE;
 }
@@ -362,8 +402,13 @@ static void on_bus_acquired (GDBusConnection *connection,
 	if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (interface), connection, "/xyz/openbmc_project/ares/rikbtnd", &error))
 	{
 		g_print("ERROR %s\n", error->message);
+		rikbtnd_interface = NULL;
 	}
-	xyz_openbmc_project_ares_rikbtnd_set_host_power_mode(interface, "0");
+	else
+	{
+		rikbtnd_interface = interface;
+	}
+	xyz_openbmc_project_ares_rikbtnd_set_host_power_mode(interface, POWER_OFF_STR);
 }
 
 
@@ -389,7 +434,7 @@ static void on_name_acquired(GDBusConnection *connection, const gchar *name, gpo
 
 
 
-void gpio_poll_thread()
+void gpio_poll_thread(void *arg)
 {
 	gpio_poll_open(g_gpios, g_count);
 	gpio_poll(g_gpios, g_count, -1);
@@ -417,6 +462,7 @@ int main(int argc, char **argv)
 	// int rc;
 	// int pid_file;
 
+	rikbtnd_interface = NULL;
 	pthread_t cmd_thread;
 	// // pthread_t tim_thread;
 
@@ -436,7 +482,7 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	pthread_create(&cmd_thread, NULL, gpio_poll_thread, NULL);
+	pthread_create(&cmd_thread, NULL, &gpio_poll_thread, NULL);
 
 	loop = g_main_loop_new (NULL, FALSE);
 

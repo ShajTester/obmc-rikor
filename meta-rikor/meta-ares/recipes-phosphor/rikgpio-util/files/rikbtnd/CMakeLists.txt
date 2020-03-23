@@ -26,18 +26,30 @@ ADD_CUSTOM_COMMAND( OUTPUT ${PROJECT_NAME}-manager.h ${PROJECT_NAME}-manager.c
 ADD_CUSTOM_TARGET( ${PROJECT_NAME}-manager DEPENDS ${PROJECT_NAME}-manager.h ${PROJECT_NAME}-manager.c 
                    COMMENT "Checking if re-generation is required" )
 
+ADD_CUSTOM_COMMAND( OUTPUT identify-manager.h identify-manager.c
+                    COMMAND gdbus-codegen --generate-c-code identify-manager --interface-prefix xyz.LED.identify. ${PROJECT_SOURCE_DIR}/xyz.openbmc_project.LED.Controller.identify.xml
+                    DEPENDS ${PROJECT_SOURCE_DIR}/xyz.openbmc_project.LED.Controller.identify.xml 
+                    COMMENT "Generating GDBUS source code from XML" )
+
+ADD_CUSTOM_TARGET( identify-manager DEPENDS identify-manager.h identify-manager.c 
+                   COMMENT "Checking if re-generation is required" )
+
 find_package(Threads)
 
 add_executable(${PROJECT_NAME} 
 	rikbtnd.c
 	${PROJECT_BINARY_DIR}/${PROJECT_NAME}-manager.c
+  ${PROJECT_BINARY_DIR}/identify-manager.c
 	)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   COMPILE_OPTIONS -Wpedantic -Wall -Wextra
 )
 
-add_dependencies( ${PROJECT_NAME} ${PROJECT_NAME}-manager )
+add_dependencies( ${PROJECT_NAME} 
+  ${PROJECT_NAME}-manager 
+  identify-manager 
+)
 
 target_link_libraries(${PROJECT_NAME}
 	${CMAKE_THREAD_LIBS_INIT}
