@@ -20,8 +20,8 @@ SUMMARY = ""
 DESCRIPTION = ""
 SECTION = "base"
 PR = "r1"
-LICENSE = "GPLv2"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=8264535c0c4e9c6c335635c4026a8022"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=838c366f69b72c5df05c96dff79b35f2"
 
 SRC_URI = "file://rikgpio \
           "
