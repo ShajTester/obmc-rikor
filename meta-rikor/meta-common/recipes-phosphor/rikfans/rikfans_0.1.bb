@@ -31,18 +31,26 @@ SRC_URI = " \
 	file://src/test.cpp \
 	file://src/util.cpp \
 	file://src/util.hpp \
+	file://src/conf.json \
 	file://src/ec/pid.cpp \
 	file://src/ec/pid.hpp \
 	file://src/ec/stepwise.cpp \
 	file://src/ec/stepwise.hpp \
+	file://src/xyz.openbmc_project.ares.rikfan.xml \
+	file://src/zone.hpp \
+	file://src/zone.cpp \
+	file://src/fan.h \
+	file://src/fan.cpp \
 	"
 SRCREV = "${AUTOREV}"
 
 DEPENDS += "systemd nlohmann-json"
+#DEPENDS += "glibc dbus dbus-glib glib-2.0 glib-2.0-native"
+DEPENDS += "glib-2.0 glib-2.0-native"
 
 S = "${WORKDIR}"
 
-inherit cmake systemd
+inherit cmake systemd pkgconfig
 
 EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=MinSizeRel"
 

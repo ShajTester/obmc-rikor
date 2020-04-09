@@ -1,0 +1,5 @@
+<node>
+	<interface name="xyz.openbmc_project.Led.Physical">
+		<property name="State" type="s" access="readwrite"/>
+	</interface>
+</node>
