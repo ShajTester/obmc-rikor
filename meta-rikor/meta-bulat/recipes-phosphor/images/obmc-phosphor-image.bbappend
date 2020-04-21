@@ -31,7 +31,7 @@ IMAGE_FEATURES_append_df-obmc-ubi-fs = " read-only-rootfs"
 
 CORE_IMAGE_EXTRA_INSTALL_append = " bash "
 CORE_IMAGE_EXTRA_INSTALL_append = " packagegroup-obmc-apps-extras "
-CORE_IMAGE_EXTRA_INSTALL_append = " packagegroup-obmc-apps-extrasdevtools "
+# CORE_IMAGE_EXTRA_INSTALL_append = " packagegroup-obmc-apps-extrasdevtools "
 # CORE_IMAGE_EXTRA_INSTALL_append = " i2c-tools "
 # CORE_IMAGE_EXTRA_INSTALL_append = " obmc-console "
 # CORE_IMAGE_EXTRA_INSTALL_append = " pam-plugin-access "
