@@ -6,7 +6,7 @@ LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e"
 
 SRC_URI = "git://github.com/tohas1986/phosphor-webui.git;branch=rikorv2"
-SRCREV = "a7a0f8e3b3f38c0eb422dbc4e5667d61005e63f4"
+SRCREV = "cbd4e0b26d2189df2d249280aaf85bfc8fc87fae"
 # SRCREV = "${AUTOREV}"
 S = "${WORKDIR}/git"
 
