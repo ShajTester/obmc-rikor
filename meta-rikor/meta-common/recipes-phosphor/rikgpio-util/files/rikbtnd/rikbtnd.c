@@ -109,8 +109,10 @@ int power_command()
 	{
 		gpio_change_direction(&g, GPIO_DIRECTION_OUT);
 		gpio_set(g.gs_gpio, GPIO_VALUE_HIGH);
-		// usleep(10000);
+		usleep(100000);
 		gpio_set(g.gs_gpio, GPIO_VALUE_LOW);
+		usleep(100000);
+		gpio_set(g.gs_gpio, GPIO_VALUE_HIGH);
 		gpio_change_direction(&g, GPIO_DIRECTION_IN);
 
 		system("/usr/bin/rikbtnd-afterpoweron.sh &");
@@ -149,6 +151,8 @@ int PCH_command()
 	usleep(100000);
 	gpio_set(g.gs_gpio, GPIO_VALUE_HIGH);
 	gpio_change_direction(&g, GPIO_DIRECTION_IN);
+
+	// sleep(2);    // Попытка решения проблемы #100
 
 	pthread_mutex_unlock(&web_mutex1);
 
@@ -281,7 +285,7 @@ static void gpio_event_handle(gpio_poll_st *gp)
 	}
 	else if (gp->gs.gs_gpio == g_gpios[3].gs.gs_gpio)
 	{
-		// Front panel POWER button
+		// Front panel RESET button
 		tt = get_nanos();
 		if ((tt - rstbtn_last_time) > 600)
 		{
