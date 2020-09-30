@@ -41,4 +41,5 @@ CORE_IMAGE_EXTRA_INSTALL_append = " ffdc "
 CORE_IMAGE_EXTRA_INSTALL_append = " rsync "
 CORE_IMAGE_EXTRA_INSTALL_append = " rng-tools "
 CORE_IMAGE_EXTRA_INSTALL_append = " lrzsz "
+CORE_IMAGE_EXTRA_INSTALL_append = " postfix "
 
