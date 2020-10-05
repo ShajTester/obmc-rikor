@@ -15,28 +15,23 @@ include_directories("${PROJECT_SOURCE_DIR}/inc")
 include_directories("${PROJECT_SOURCE_DIR}/src")
 
 
-#                    COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_SOURCE_DIR}/src gdbus-codegen --generate-c-code rikfan-manager --interface-prefix xyz.ares.rikfan. ${PROJECT_SOURCE_DIR}/src/xyz.ares.rikfan.xml
+#                    COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_SOURCE_DIR}/src gdbus-codegen --generate-c-code rikmail-manager --interface-prefix xyz.ares.rikmail. ${PROJECT_SOURCE_DIR}/src/xyz.ares.rikmail.xml
 
 
-ADD_CUSTOM_COMMAND( OUTPUT rikfan-manager.h rikfan-manager.c
-                    COMMAND gdbus-codegen --generate-c-code rikfan-manager --interface-prefix xyz.ares.rikfan. ${PROJECT_SOURCE_DIR}/src/xyz.openbmc_project.ares.rikfan.xml
-                    DEPENDS ${PROJECT_SOURCE_DIR}/src/xyz.openbmc_project.ares.rikfan.xml 
+ADD_CUSTOM_COMMAND( OUTPUT rikmail-manager.h rikmail-manager.c
+                    COMMAND gdbus-codegen --generate-c-code rikmail-manager --interface-prefix xyz.ares.rikmail. ${PROJECT_SOURCE_DIR}/src/xyz.openbmc_project.ares.rikmail.xml
+                    DEPENDS ${PROJECT_SOURCE_DIR}/src/xyz.openbmc_project.ares.rikmail.xml 
                     COMMENT "Generating GDBUS source code from XML" )
 
-ADD_CUSTOM_TARGET( rikfan-manager DEPENDS rikfan-manager.h rikfan-manager.c 
+ADD_CUSTOM_TARGET( rikmail-manager DEPENDS rikmail-manager.h rikmail-manager.c 
                    COMMENT "Checking if re-generation is required" )
 
 find_package(Threads)
 
 add_executable(${PROJECT_NAME} 
 	src/main.cpp
-  src/fan.cpp
-  src/zone.cpp
-	src/util.cpp 
-	src/ec/pid.cpp 
-	src/ec/stepwise.cpp
-	${PROJECT_BINARY_DIR}/rikfan-manager.c
-	)
+	${PROJECT_BINARY_DIR}/rikmail-manager.c
+)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   CXX_STANDARD 17
@@ -44,7 +39,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
   COMPILE_OPTIONS -Wpedantic -Wall -Wextra
 )
 
-add_dependencies( ${PROJECT_NAME} rikfan-manager )
+add_dependencies( ${PROJECT_NAME} rikmail-manager )
 
 target_link_libraries(${PROJECT_NAME}
 	${CMAKE_THREAD_LIBS_INIT}
@@ -53,25 +48,25 @@ target_link_libraries(${PROJECT_NAME}
 	stdc++fs
 )
 
-configure_file(${PROJECT_SOURCE_DIR}/src/conf.json /tmp/rikfan/conf.json COPYONLY)
+# configure_file(${PROJECT_SOURCE_DIR}/src/conf.json /tmp/rikmail/conf.json COPYONLY)
 
 install (TARGETS ${PROJECT_NAME}   RUNTIME DESTINATION bin)
-install (FILES   ${PROJECT_SOURCE_DIR}/rikfan.service   DESTINATION /lib/systemd/system    COMPONENT init)
-install (FILES   ${PROJECT_SOURCE_DIR}/src/conf.json    DESTINATION /etc/rikfan    COMPONENT config)
+install (FILES   ${PROJECT_SOURCE_DIR}/rikmail.service   DESTINATION /lib/systemd/system    COMPONENT init)
+# install (FILES   ${PROJECT_SOURCE_DIR}/src/conf.json    DESTINATION /etc/rikmail    COMPONENT config)
 
 # https://stackoverflow.com/questions/35765106/symbolic-links-cmake
 
-add_executable(rikfantest src/test.cpp)
+# add_executable(rikmailtest src/test.cpp)
 
-set_target_properties(rikfantest PROPERTIES
-  CXX_STANDARD 17
-  CXX_STANDARD_REQUIRED ON
-  COMPILE_OPTIONS -Wpedantic -Wall -Wextra
-)
+# set_target_properties(rikmailtest PROPERTIES
+#   CXX_STANDARD 17
+#   CXX_STANDARD_REQUIRED ON
+#   COMPILE_OPTIONS -Wpedantic -Wall -Wextra
+# )
 
-target_link_libraries(rikfantest
-	stdc++fs
-)
+# target_link_libraries(rikmailtest
+# 	stdc++fs
+# )
 
-# install (TARGETS rikfantest   RUNTIME DESTINATION bin)
+# install (TARGETS rikmailtest   RUNTIME DESTINATION bin)
 

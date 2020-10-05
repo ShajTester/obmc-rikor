@@ -16,8 +16,8 @@
 # Boston, MA 02110-1301 USA
 #
 
-SUMMARY = "Fan control"
-DESCRIPTION = "Fan control service by Rikor"
+SUMMARY = "Email notifier"
+DESCRIPTION = "Email notifier service by Rikor"
 SECTION = "base"
 PR = "r1"
 LICENSE = "MIT"
@@ -26,21 +26,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=838c366f69b72c5df05c96dff79b35f2"
 SRC_URI = " \
 	file://LICENSE \
 	file://CMakeLists.txt \
-	file://rikfan.service \
+	file://rikmail.service \
 	file://src/main.cpp \
-	file://src/test.cpp \
-	file://src/util.cpp \
-	file://src/util.hpp \
-	file://src/conf.json \
-	file://src/ec/pid.cpp \
-	file://src/ec/pid.hpp \
-	file://src/ec/stepwise.cpp \
-	file://src/ec/stepwise.hpp \
-	file://src/xyz.openbmc_project.ares.rikfan.xml \
-	file://src/zone.hpp \
-	file://src/zone.cpp \
-	file://src/fan.h \
-	file://src/fan.cpp \
+	file://src/xyz.openbmc_project.ares.rikmail.xml \
 	"
 SRCREV = "${AUTOREV}"
 
@@ -54,8 +42,8 @@ inherit cmake systemd pkgconfig
 
 EXTRA_OECMAKE += "-DCMAKE_BUILD_TYPE=MinSizeRel"
 
-FILES_${PN} += "/etc/rikfan"
-SYSTEMD_SERVICE_${PN} += "rikfan.service"
+# FILES_${PN} += "/etc/rikfan"
+SYSTEMD_SERVICE_${PN} += "rikmail.service"
 
 
 

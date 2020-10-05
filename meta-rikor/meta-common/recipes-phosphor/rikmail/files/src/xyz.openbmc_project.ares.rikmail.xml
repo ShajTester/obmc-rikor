@@ -1,0 +1,8 @@
+<node>
+	<interface name="xyz.openbmc_project.ares.rikmail">
+		<method name="SMTPParams">
+			<arg name="greeting" direction="in" type="s"/>
+			<arg name="response" direction="out" type="s"/>
+		</method>
+	</interface>
+</node>
