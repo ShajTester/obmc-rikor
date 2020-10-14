@@ -40,26 +40,44 @@ using json = nlohmann::json;
 
 // #define RIKFAN_DEBUG
 
-  // gboolean (*handle_smtpparams) (
-  //   XyzOpenbmc_projectAresRikmail *object,
-  //   GDBusMethodInvocation *invocation,
-  //   const gchar *arg_greeting);
+// gboolean (*handle_smtpparams) (
+//   XyzOpenbmc_projectAresRikmail *object,
+//   GDBusMethodInvocation *invocation,
+//   const gchar *arg_greeting);
 
 
 
 static gboolean on_handle_apply_SMTPParams (XyzOpenbmc_projectAresRikmail *interface,
         GDBusMethodInvocation *invocation,
-        const gchar           *greeting)
-        // gpointer              user_data)
+        const gchar           *greeting
+        )
+// gpointer              user_data)
 {
-    gchar *response;
     unsigned int mode = 0;
 
+    syslog(LOG_INFO, "%s", __PRETTY_FUNCTION__);
+    syslog(LOG_INFO, "%s", greeting);
     // response = g_strdup(greeting);
-    json resp;
-    resp["email"] = "test@test.com";
-    xyz_openbmc_project_ares_rikmail_complete_smtpparams (interface, invocation, resp.dump().c_str());
-    // g_free (response);
+    // auto resp = json::array();
+    // resp.push_back("test@test.com");
+    // resp.push_back(false);
+    // resp.push_back(false);
+    // resp.push_back(true);
+    // resp.push_back(false);
+
+    // https://developer.gnome.org/glib/stable/glib-GVariant.html
+    // https://people.gnome.org/~ryanl/glib-docs/gvariant-format-strings.html
+    auto mailstr = g_strdup("test@example.org");
+    gboolean bool_array[] = {TRUE, FALSE, TRUE, FALSE, TRUE};
+    auto response = g_variant_new("(@sab)", &mailstr, &bool_array);
+    syslog(LOG_INFO, "%s", mailstr);
+
+
+    xyz_openbmc_project_ares_rikmail_complete_smtpparams (interface, invocation, response);
+    // xyz_openbmc_project_ares_rikmail_complete_smtpparams (interface, invocation, "test@test.com");
+    syslog(LOG_INFO, "end function");
+    g_free (response);
+    g_free (mailstr);
 
     return TRUE;
 }
@@ -83,7 +101,7 @@ static void on_bus_acquired (GDBusConnection *connection,
     g_free(conn_name);
 
     interface = xyz_openbmc_project_ares_rikmail_skeleton_new();
-    g_signal_connect (interface, "handle-apply-SMTPParams",
+    g_signal_connect (interface, "handle-smtpparams",
                       G_CALLBACK (on_handle_apply_SMTPParams),
                       NULL);
     error = NULL;
@@ -109,7 +127,7 @@ static void on_name_acquired(GDBusConnection *connection, const gchar *name, gpo
 
 
 
-static 	GMainLoop *loop;
+static  GMainLoop *loop;
 
 /*
  * On SIGINT, exit the main loop

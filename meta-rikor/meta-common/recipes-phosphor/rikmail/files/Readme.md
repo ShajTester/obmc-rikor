@@ -32,3 +32,13 @@
 }
 ```
 
+# GIO
+
+*Использование gdbus-codegen для работы с dbus*
+
+[introspection-format](https://dbus.freedesktop.org/doc/dbus-specification.html#introspection-format)
+[glib-GVariant](https://developer.gnome.org/glib/stable/glib-GVariant.html)
+[g-variant-new](https://developer.gnome.org/glib/stable/glib-GVariant.html#g-variant-new) - примеры использования
+[gvariant-format-strings](https://developer.gnome.org/glib/stable/gvariant-format-strings.html) - как описывать параметры в XML файле
+
+

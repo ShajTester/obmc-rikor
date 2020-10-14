@@ -1,8 +1,10 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+         "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
 	<interface name="xyz.openbmc_project.ares.rikmail">
 		<method name="SMTPParams">
 			<arg name="greeting" direction="in" type="s"/>
-			<arg name="response" direction="out" type="s"/>
+			<arg name="response" direction="out" type="sab"/>
 		</method>
 	</interface>
 </node>
