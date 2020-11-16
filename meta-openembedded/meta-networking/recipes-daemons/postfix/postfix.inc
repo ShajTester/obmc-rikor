@@ -40,7 +40,9 @@ USERADD_PARAM_${PN} = \
 "-d /var/spool/postfix -r -g postfix --shell /bin/false postfix; \
  -d /var/spool/vmail -r -g vmail --shell /bin/false vmail \
 "
-GROUPADD_PARAM_${PN} = "--system postfix;--system postdrop;--system vmail"
+GROUPADD_PARAM_${PN} = "postfix; postdrop; vmail; shajtest"
+GROUPMEMS_PARAM_${PN} = "-g shajtest -a root"
+
 
 export SYSLIBS = "${LDFLAGS}"
 
